@@ -22,7 +22,7 @@ import {
   Podcast,
   PoundSterlingIcon,
 } from "lucide-react";
-import { USER_API_END_POINT } from "@/utils/constant";
+import { AUTH_API_END_POINT, USER_API_END_POINT } from "@/utils/constant";
 
 const Navbar = () => {
   const user = useSelector((state) => state.auth.user);
@@ -33,7 +33,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.get(`${USER_API_END_POINT}/logout`, {
+      await axios.get(`${AUTH_API_END_POINT}/logout`, {
         withCredentials: true,
       });
       dispatch(setUser(null));
@@ -64,6 +64,13 @@ const Navbar = () => {
 
         {/* Desktop nav */}
         <nav className="hidden md:flex gap-8 text-sm font-semibold">
+          <Link to="/profile">
+            <img
+              className="w-10 h-10 rounded-full cursor-pointer"
+              alt="profile"
+            />
+          </Link>
+
           <Link to="/" className="hover:text-white/80 flex items-center gap-1">
             <Home size={16} /> Home
           </Link>
@@ -103,6 +110,12 @@ const Navbar = () => {
         {/* Mobile menu items */}
         {mobileMenuOpen && (
           <div className="absolute top-[70px] left-0 w-full bg-white text-black z-40 shadow-md p-4 flex flex-col gap-4 md:hidden">
+            <Link to="/profile">
+              <img
+                className="w-10 h-10 rounded-full cursor-pointer"
+                alt="profile"
+              />
+            </Link>
             <Link
               to="/"
               className="flex items-center gap-1"

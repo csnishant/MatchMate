@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { setUser } from "@/redux/authSlice";
-import { USER_API_END_POINT } from "@/utils/constant";
+import { AUTH_API_END_POINT, USER_API_END_POINT } from "@/utils/constant";
 import toast from "react-hot-toast";
 
 export default function Login() {
@@ -19,7 +19,7 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await axios.post(
-        `${USER_API_END_POINT}/login`,
+        `${AUTH_API_END_POINT}/login`,
         { email, password },
         { withCredentials: true }
       );
@@ -42,10 +42,6 @@ export default function Login() {
       {/* White smoke-like overlay */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.2)_0%,transparent_60%)] z-10" />
 
-      {/* Navbar */}
-      <div className="absolute top-0 left-0 w-full p-4 z-20">
-        <h1 className="text-white text-2xl font-bold">MatchMate</h1>
-      </div>
 
       {/* Login Card */}
       <div className="relative z-20 max-w-md w-full bg-white rounded-xl shadow-xl p-8 space-y-6">
