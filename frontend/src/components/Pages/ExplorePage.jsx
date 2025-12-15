@@ -219,7 +219,7 @@ export default function ExplorePage() {
             )}
           </div>
 
-          {/* 🚪 Already Have Room */}
+          {/*  Already Have Room */}
           <div ref={roomsRef}>
             <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
               <Users /> Already Have Room

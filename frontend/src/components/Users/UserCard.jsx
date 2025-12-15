@@ -61,11 +61,11 @@ export default function UserCard({ user, requestStatus, sendRequest }) {
       {/* Action Buttons */}
       <div className="mt-5 flex flex-wrap justify-center sm:justify-end gap-3">
         {/* View Profile */}
-        <button
-          onClick={() => setOpen(true)}
-          className="px-4 py-1.5 text-sm font-medium bg-white/10 text-purple-300 rounded-full border border-purple-400 hover:bg-white/20 shadow-md backdrop-blur-sm transition-all">
-          <Eye />
-        </button>
+        <Link to={`/view-profile/${user._id}`}>
+          <button className="px-4 py-1.5 text-sm font-medium bg-white/10 text-purple-300 rounded-full border border-purple-400 hover:bg-white/20 shadow-md transition-all">
+            <Eye />
+          </button>
+        </Link>
 
         {/* Conditionally Render Buttons */}
         {requestStatus === "accepted" ? (
@@ -90,9 +90,6 @@ export default function UserCard({ user, requestStatus, sendRequest }) {
           </Tooltip>
         )}
       </div>
-
-      {/* Modal */}
-      {open && <ViewProfileModal user={user} onClose={() => setOpen(false)} />}
     </div>
   );
 }

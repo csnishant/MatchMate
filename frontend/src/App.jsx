@@ -19,6 +19,7 @@ import Profile from "./components/Profile/Profile";
 import Notifications from "./components/Users/Notification";
 
 import ExplorePage from "./components/Pages/ExplorePage";
+import ViewProfile from "./components/Pages/ViewProfile";
 
 function App() {
   const dispatch = useDispatch();
@@ -41,6 +42,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/all-users" element={<ExplorePage />} />
+        <Route path="/view-profile/:id" element={<ViewProfile />} />
       </Routes>
     </>
   );
