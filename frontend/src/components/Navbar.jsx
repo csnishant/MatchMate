@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { setUser } from "@/redux/authSlice";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -18,39 +18,49 @@ import {
   Bell,
   Menu,
   X,
-  PersonStanding,
-  Podcast,
   PoundSterlingIcon,
 } from "lucide-react";
-import { AUTH_API_END_POINT, USER_API_END_POINT } from "@/utils/constant";
+import { AUTH_API_END_POINT } from "@/utils/constant";
 
 const Navbar = () => {
   const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [open, setOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = async () => {
-    try {
-      await axios.get(`${AUTH_API_END_POINT}/logout`, {
-        withCredentials: true,
-      });
-      dispatch(setUser(null));
-      localStorage.removeItem("user");
-      navigate("/");
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
-  };
+  // ✅ AUTO CLOSE MOBILE MENU ON ROUTE CHANGE
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen((prev) => !prev);
-  };
+const handleLogout = async () => {
+  try {
+    await axios.get(`${AUTH_API_END_POINT}/logout`, {
+      withCredentials: true,
+    });
+
+    dispatch(setUser(null));
+    localStorage.removeItem("user");
+
+    // ✅ CLOSE NAVBAR & POPOVER
+    setMobileMenuOpen(false);
+    setOpen(false);
+
+    // ✅ REDIRECT TO HOME
+    navigate("/");
+  } catch (err) {
+    console.error("Logout failed", err);
+  }
+};
+
 
   return (
     <header className="bg-gradient-to-r from-[#0f172a] via-[#1e3a8a] to-[#6d28d9]">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center relative">
+        {/* Logo */}
         <Link
           to="/"
           className="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-sky-200 to-slate-100 select-none">
@@ -58,19 +68,14 @@ const Navbar = () => {
         </Link>
 
         {/* Mobile menu button */}
-        <button className="text-white md:hidden" onClick={toggleMobileMenu}>
+        <button
+          className="text-white md:hidden"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex gap-8 text-sm font-semibold">
-          <Link to="/profile">
-            <img
-              className="w-10 h-10 rounded-full cursor-pointer"
-              alt="profile"
-            />
-          </Link>
-
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex gap-8 text-sm font-semibold items-center">
           <Link to="/" className="hover:text-white/80 flex items-center gap-1">
             <Home size={16} /> Home
           </Link>
@@ -86,11 +91,10 @@ const Navbar = () => {
           </Link>
           <Link
             to="/all-posts"
-            className="flex items-center gap-1"
-            onClick={() => setMobileMenuOpen(false)}>
-            <PoundSterlingIcon size={16} />
-            All Posts
+            className="hover:text-white/80 flex items-center gap-1">
+            <PoundSterlingIcon size={16} /> All Posts
           </Link>
+
           {!user && (
             <div className="flex gap-2">
               <Link to="/login">
@@ -107,56 +111,32 @@ const Navbar = () => {
           )}
         </nav>
 
-        {/* Mobile menu items */}
+        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="absolute top-[70px] left-0 w-full bg-white text-black z-40 shadow-md p-4 flex flex-col gap-4 md:hidden">
-            <Link to="/profile">
-              <img
-                className="w-10 h-10 rounded-full cursor-pointer"
-                alt="profile"
-              />
-            </Link>
-            <Link
-              to="/"
-              className="flex items-center gap-1"
-              onClick={() => setMobileMenuOpen(false)}>
+            <Link to="/" className="flex items-center gap-1">
               <Home size={16} /> Home
             </Link>
-            <Link
-              to="/all-posts"
-              className="flex items-center gap-1"
-              onClick={() => setMobileMenuOpen(false)}>
-              <PoundSterlingIcon size={16} />
-              All Posts
+            <Link to="/all-posts" className="flex items-center gap-1">
+              <PoundSterlingIcon size={16} /> All Posts
             </Link>
-            <Link
-              to="/all-users"
-              className="flex items-center gap-1"
-              onClick={() => setMobileMenuOpen(false)}>
+            <Link to="/all-users" className="flex items-center gap-1">
               <Users size={16} /> Find Match
             </Link>
-            <Link
-              to="/notifications"
-              className="flex items-center gap-1"
-              onClick={() => setMobileMenuOpen(false)}>
+            <Link to="/notifications" className="flex items-center gap-1">
               <Bell size={16} /> Notifications
             </Link>
 
             {user ? (
               <div className="flex flex-col gap-2 border-t pt-2">
-                <Link
-                  to="/profile"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex items-center gap-2">
+                <Link to="/profile" className="flex items-center gap-2">
                   <User2 size={16} /> View Profile
                 </Link>
-                <button
+                <Button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 text-left">
+                  className="flex items-center gap-2">
                   <LogOut size={16} /> Logout
-                </button>
+                </Button>
               </div>
             ) : (
               <div className="flex flex-col gap-2 border-t pt-2">
@@ -175,7 +155,7 @@ const Navbar = () => {
           </div>
         )}
 
-        {/* Avatar (right side for desktop) */}
+        {/* Avatar + Popover (Desktop) */}
         {user && (
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
@@ -205,7 +185,6 @@ const Navbar = () => {
                   className="flex items-center gap-2 hover:underline">
                   <User2 size={16} /> View Profile
                 </Link>
-
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-2 hover:underline text-left">
