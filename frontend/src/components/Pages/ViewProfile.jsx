@@ -1,6 +1,14 @@
+
+
+// ===============================
+// FRONTEND PROFILE PAGE
+// File: ViewProfile.jsx
+// ===============================
+
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { USER_API_END_POINT } from "@/utils/constant";
 import {
   FaMapMarkerAlt,
   FaUniversity,
@@ -13,40 +21,45 @@ import {
   FaGamepad,
   FaLanguage,
   FaUserAltSlash,
+  FaPhone,
+  FaEnvelope,
+  FaSmoking,
+  FaGlassCheers,
+  FaCalendarAlt,
 } from "react-icons/fa";
 
 export default function ViewProfile() {
   const { id } = useParams();
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setUser({
-      name: "Test User",
-      age: 22,
-      gender: "Male",
-      city: "Indore",
-      state: "MP",
-      university: "ABC University",
-      course: "BTech",
-      sleepTime: "11 PM",
-      wakeTime: "6 AM",
-      foodPreference: "Veg",
-      cleanlinessLevel: "High",
-      introvertOrExtrovert: "Introvert",
-      hobbies: ["Coding", "Music"],
-      preferredLanguages: ["Hindi", "English"],
-      roommateExpectations: "Clean & friendly",
-    });
-  }, []);
+    const fetchProfile = async () => {
+      try {
+        const res = await axios.get(
+          `${USER_API_END_POINT}/user-profile/${id}`,
+          { withCredentials: true }
+        );
+        setUser(res.data.user);
+      } catch (error) {
+        console.error("Failed to fetch profile", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchProfile();
+  }, [id]);
 
-  if (!user)
+  if (loading)
     return <div className="text-center text-white p-6">Loading...</div>;
+  if (!user)
+    return <div className="text-center text-red-400 p-6">User not found</div>;
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white p-6 md:p-10">
-      {/* Header Section */}
-      <div className="max-w-3xl mx-auto bg-white/10 p-6 rounded-2xl shadow-lg border border-white/20 mb-8">
+      {/* Header */}
+      <div className="max-w-4xl mx-auto bg-white/10 p-6 rounded-2xl shadow-lg border border-white/20 mb-8">
         <div className="flex items-center gap-6">
           <img
             src={user.profilePic || "/default-avatar.png"}
@@ -63,7 +76,13 @@ export default function ViewProfile() {
       </div>
 
       {/* Details Grid */}
-      <div className="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <DetailItem icon={<FaEnvelope />} label="Email" value={user.email} />
+        <DetailItem
+          icon={<FaPhone />}
+          label="Phone"
+          value={user.phone || "—"}
+        />
         <DetailItem
           icon={<FaMapMarkerAlt />}
           label="Location"
@@ -78,6 +97,11 @@ export default function ViewProfile() {
           icon={<FaBook />}
           label="Course"
           value={user.course || "—"}
+        />
+        <DetailItem
+          icon={<FaCalendarAlt />}
+          label="Year"
+          value={user.year || "—"}
         />
         <DetailItem
           icon={<FaBed />}
@@ -100,6 +124,16 @@ export default function ViewProfile() {
           value={user.cleanlinessLevel || "—"}
         />
         <DetailItem
+          icon={<FaSmoking />}
+          label="Smoking"
+          value={user.smoking ? "Yes" : "No"}
+        />
+        <DetailItem
+          icon={<FaGlassCheers />}
+          label="Drinking"
+          value={user.drinking ? "Yes" : "No"}
+        />
+        <DetailItem
           icon={<FaUserAltSlash />}
           label="Personality"
           value={user.introvertOrExtrovert || "—"}
@@ -116,8 +150,13 @@ export default function ViewProfile() {
         />
         <DetailItem
           icon={<FaUserFriends />}
-          label="Expectations"
+          label="Roommate Expectations"
           value={user.roommateExpectations || "—"}
+        />
+        <DetailItem
+          icon={<FaCalendarAlt />}
+          label="Joined On"
+          value={new Date(user.createdAt).toLocaleDateString()}
         />
       </div>
     </div>
