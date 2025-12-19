@@ -44,19 +44,31 @@ export const getAllUsers = async (req, res) => {
 
 export const viewUserProfile = async (req, res) => {
   try {
-    const { id } = req.params; // user id jo tum fetch karna chahte ho
+    const { id } = req.params;
 
     const user = await User.findById(id).select(
-      "name age gender city state university course year profilePic phone sleepTime wakeTime cleanlinessLevel foodPreference smoking drinking introvertOrExtrovert roommateExpectations hobbies preferredLanguages"
+      `
+name email age gender phone
+city state university course year profilePic
+sleepTime wakeTime
+smoking drinking
+cleanlinessLevel foodPreference
+introvertOrExtrovert personality
+hobbies preferredLanguages
+roommateExpectations guestsAllowed
+createdAt
+`
     );
 
-    if (!user) return res.status(404).json({ message: "User not found" });
-
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
     res.status(200).json({
       success: true,
       user,
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Failed to fetch profile" });
   }
 };
