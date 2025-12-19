@@ -1,28 +1,34 @@
-// File: Login.jsx
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { setUser } from "@/redux/authSlice";
-import { AUTH_API_END_POINT, USER_API_END_POINT } from "@/utils/constant";
+import { AUTH_API_END_POINT } from "@/utils/constant";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 
-export default function Login() {
+const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
   const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post(
-        `${AUTH_API_END_POINT}/login`,
-        { email, password },
-        { withCredentials: true }
-      );
+      const res = await axios.post(`${AUTH_API_END_POINT}/login`, formData, {
+        withCredentials: true,
+      });
       toast.success(res.data.message);
       dispatch(setUser(res.data.user));
       localStorage.setItem("user", JSON.stringify(res.data.user));
@@ -35,52 +41,45 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background gradient animation */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-red-400 via-purple-400 to-blue-400 animate-[pulse_8s_infinite] opacity-70 blur-2xl z-0" />
+    <div className="max-w-md mx-auto mt-10 p-6 border rounded-xl shadow-md space-y-4">
+      <h2 className="text-2xl font-bold text-center">
+        Login to Your MatchMate Account
+      </h2>
 
-      {/* White smoke-like overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.2)_0%,transparent_60%)] z-10" />
+      <form onSubmit={handleLogin} className="space-y-4">
+        <Input
+          type="email"
+          name="email"
+          placeholder="Email Address"
+          value={formData.email}
+          onChange={handleChange}
+          autoComplete="email"
+          required
+        />
 
+        <Input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={formData.password}
+          onChange={handleChange}
+          autoComplete="current-password"
+          required
+        />
 
-      {/* Login Card */}
-      <div className="relative z-20 max-w-md w-full bg-white rounded-xl shadow-xl p-8 space-y-6">
-        <h2 className="text-2xl font-bold text-center text-gray-800">
-          Sign in to your account
-        </h2>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            required
-            autoComplete="email"
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            required
-            autoComplete="current-password"
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 rounded-md transition">
-            {loading ? "Logging in..." : "Sign in"}
-          </button>
-        </form>
-        <p className="text-sm text-center text-gray-600">
-          Don't have an account?{" "}
-          <a href="/signup" className="text-blue-600 hover:underline">
-            Create account
-          </a>
-        </p>
-      </div>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </Button>
+      </form>
+
+      <p className="text-sm text-center">
+        Don’t have an account?{" "}
+        <a href="/signup" className="text-blue-600 hover:underline">
+          Signup
+        </a>
+      </p>
     </div>
   );
-}
+};
+
+export default Login;
