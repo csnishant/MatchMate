@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import {  AUTH_API_END_POINT, USER_API_END_POINT } from "../../utils/constant";
+import {  AUTH_API_END_POINT } from "../../utils/constant";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
