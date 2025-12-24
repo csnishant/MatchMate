@@ -64,7 +64,7 @@ export const createPost = async (req, res) => {
 export const getAllPosts = async (req, res) => {
   try {
     const posts = await Post.find()
-      .populate("user", "name gender age university course profilePic") // ✅ user ka basic info bhejega
+      .populate("user", "name gender age university course profilePic hasRoom") // ✅ user ka basic info bhejega
       .sort({ createdAt: -1 }); // Latest post upar
 
     res.status(200).json({
