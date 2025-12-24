@@ -5,6 +5,8 @@ export default function SearchFilter({
   setSearch,
   showFilters,
   setShowFilters,
+  filterHasRoom,
+  setFilterHasRoom,
   selectedGender,
   setSelectedGender,
   selectedUniversity,
@@ -37,6 +39,15 @@ export default function SearchFilter({
       {/* Dropdown Filters */}
       {showFilters && (
         <div className="flex gap-4 flex-wrap mb-6">
+          <select
+            value={filterHasRoom}
+            onChange={(e) => setFilterHasRoom(e.target.value)}
+            className="bg-white/10 border border-white/30 px-4 py-2 rounded-xl backdrop-blur-md text-white">
+            <option value="">All Rooms</option>
+            <option value="yes">Has Room</option>
+            <option value="no">No Room</option>
+          </select>
+
           <select
             value={selectedGender}
             onChange={(e) => setSelectedGender(e.target.value)}
