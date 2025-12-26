@@ -40,7 +40,7 @@ export default function PostCard({ post }) {
       {/* Buttons */}
       <div className="flex flex-col items-end gap-2">
         <Link
-          to={`/view-post/${post._id}`}
+          to={`/user-profile/${post.user?._id}`}
           className="text-indigo-400 text-sm hover:underline">
           View
         </Link>
