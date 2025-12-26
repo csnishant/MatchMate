@@ -20,7 +20,7 @@ export const createPost = async (req, res) => {
       description,
     } = req.body;
 
-    // 🛑 Basic Validation
+    // 🛑 Basic Validation  dsfd
     if (
       !city ||
       !area ||
