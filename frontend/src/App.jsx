@@ -41,8 +41,8 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/notifications" element={<Notifications />} />
-        <Route path="/all-users" element={<ExplorePage />} />
-        <Route path="/view-profile/:id" element={<ViewProfile />} />
+        <Route path="/all-posts" element={<ExplorePage />} />
+        <Route path="/user-profile/:id" element={<ViewProfile />} />
       </Routes>
     </>
   );

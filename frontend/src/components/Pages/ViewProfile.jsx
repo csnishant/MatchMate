@@ -33,23 +33,25 @@ export default function ViewProfile() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await axios.get(
-          `${USER_API_END_POINT}/user-profile/${id}`,
-          { withCredentials: true }
-        );
-        setUser(res.data.user);
-      } catch (error) {
-        console.error("Failed to fetch profile", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+const [posts, setPosts] = useState([]);
 
-    fetchProfile();
-  }, [id]);
+useEffect(() => {
+  const fetchProfile = async () => {
+    try {
+      const res = await axios.get(`${USER_API_END_POINT}/user-profile/${id}`, {
+        withCredentials: true,
+      });
+      setUser(res.data.user);
+      setPosts(res.data.posts); // ✅ Selected user ke posts
+    } catch (error) {
+      console.error("Failed to fetch profile", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchProfile();
+}, [id]);
+
 
   if (loading)
     return <div className="text-center text-white p-6">Loading...</div>;
