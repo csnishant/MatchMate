@@ -1,94 +1,125 @@
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Plus,
+  Sparkles,
+  ShieldCheck,
+  MessageCircle,
+  ArrowRight,
+} from "lucide-react";
 import Hero from "@/components/Hero";
 import SearchBar from "./SearchBar";
 import Footer from "./Footer";
 import Community from "./Community";
 import CreatePostModal from "./Post/CreatePostModal";
-import PostButton from "./Post/PostButton";
-import SearchFilter from "./SearchFilter";
 
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <main className="bg-gradient-to-r from-[#0f172a] via-[#1e3a8a] to-[#6d28d9]">
-      {/* Search Section */}
-      <section className="py-8 md:py-10">
-        <SearchBar route="all-users" />
-      </section>
+    <main className="min-h-screen bg-[#000000] text-black selection:bg-indigo-500/30">
+      {/* 1. iOS BLURRED TOP SEARCH BAR */}
+      <nav className=" top-0 z-50 backdrop-blur-2xl bg-black/60 border-b border-white/5 px-4 py-4">
+        <div className="max-w-4xl mx-auto">
+          <SearchBar route="all-users" />
+        </div>
+      </nav>
 
-      
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      {/* 2. DYNAMIC HERO SECTION */}
+      <section className="relative pt-10 pb-20 overflow-hidden">
+        {/* Background Glows */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-purple-600/20 blur-[100px] rounded-full" />
+
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
           <Hero />
         </div>
       </section>
 
-      {/* Post Button & Modal */}
-      <section>
-        <div className="p-4 sm:p-6">
-          <PostButton open={() => setIsOpen(true)} />
-          <CreatePostModal isOpen={isOpen} close={() => setIsOpen(false)} />
-        </div>
-      </section>
+      {/* 3. BENTO GRID FEATURES */}
+      <section className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <header className="mb-12 text-center md:text-left">
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
+              Why Choose{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
+                MatchMate?
+              </span>
+            </h2>
+            <p className="text-gray-400 mt-4 text-lg">
+              Finding a home is hard. Finding the right human is harder.
+            </p>
+          </header>
 
-      {/* Feature Section */}
-      <section className="py-10">
-        <div className="max-w-6xl mx-auto text-center px-4 sm:px-6">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-8 sm:mb-10">
-            Why Choose MatchMate? 🚀
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {/* Card 1 */}
-            <div className="bg-white p-6 rounded-[40px] shadow-xl border border-gray-200 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-all duration-300 ease-in-out">
-              <div className="text-5xl mb-3">🧠</div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">
-                Smart Matching
-              </h3>
-              <p className="text-sm text-gray-600 text-center">
-                Find roommates who actually match your lifestyle and habits.
-              </p>
-            </div>
-
-            {/* Card 2 */}
-            <div className="bg-white p-6 rounded-[40px] shadow-xl border border-gray-200 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-all duration-300 ease-in-out">
-              <div className="text-5xl mb-3">🔒</div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">
-                Secure Profiles
-              </h3>
-              <p className="text-sm text-gray-600 text-center">
-                Your data is safe, and you control what to share with others.
-              </p>
-            </div>
-
-            {/* Card 3 */}
-            <div className="bg-white p-6 rounded-[40px] shadow-xl border border-gray-200 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-all duration-300 ease-in-out">
-              <div className="text-5xl mb-3">💬</div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">
-                Easy Communication
-              </h3>
-              <p className="text-sm text-gray-600 text-center">
-                Chat directly with potential roommates before deciding.
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <FeatureCard
+              icon={<Sparkles className="text-yellow-400" size={32} />}
+              title="Smart Matching"
+              desc="Our AI filters roommates based on sleep cycles, food habits, and cleaning standards."
+              gradient="hover:border-yellow-500/30"
+            />
+            <FeatureCard
+              icon={<ShieldCheck className="text-blue-400" size={32} />}
+              title="Secure Profiles"
+              desc="Every profile is verified. Your privacy is our priority, always."
+              gradient="hover:border-blue-500/30"
+            />
+            <FeatureCard
+              icon={<MessageCircle className="text-green-400" size={32} />}
+              title="Direct Chat"
+              desc="Talk before you meet. Build trust through our end-to-end secure messaging."
+              gradient="hover:border-green-500/30"
+            />
           </div>
         </div>
       </section>
 
-      {/* All Users / Community Section */}
-      <section className="py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white text-center mb-8 sm:mb-10">
-            Meet Our Community
-          </h2>
+      {/* 4. COMMUNITY FEED (The Main Content) */}
+      <section className="py-10 bg-[#0a0a0a]">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center justify-between mb-10">
+            <h2 className="text-2xl md:text-4xl font-bold tracking-tighter italic">
+              The Community
+            </h2>
+            <div className="h-[1px] flex-grow mx-6 bg-white/10 hidden md:block" />
+            <button className="text-indigo-400 text-sm font-semibold flex items-center gap-2 hover:underline">
+              View All <ArrowRight size={16} />
+            </button>
+          </div>
+
           <Community />
         </div>
       </section>
 
-      {/* Footer */}
+      {/* 5. FLOATING ACTION BUTTON (iOS Style) */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100]">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setIsOpen(true)}
+          className="bg-white text-black px-8 py-4 rounded-full font-bold shadow-[0_20px_50px_rgba(255,255,255,0.15)] flex items-center gap-3 active:bg-gray-200 transition-all">
+          <Plus size={20} strokeWidth={3} />
+          Create Post
+        </motion.button>
+      </div>
+
+      {/* Modal */}
+      <CreatePostModal isOpen={isOpen} close={() => setIsOpen(false)} />
+
       <Footer />
     </main>
+  );
+}
+
+// UI Helper: Feature Card (Bento Style)
+function FeatureCard({ icon, title, desc, gradient }) {
+  return (
+    <motion.div
+      whileHover={{ y: -5 }}
+      className={`bg-[#1c1c1e] p-8 rounded-[2.5rem] border border-white/5 transition-all duration-300 ${gradient}`}>
+      <div className="mb-6 bg-white/5 w-fit p-4 rounded-3xl">{icon}</div>
+      <h3 className="text-xl font-bold mb-3 tracking-tight">{title}</h3>
+      <p className="text-gray-400 text-sm leading-relaxed">{desc}</p>
+    </motion.div>
   );
 }
