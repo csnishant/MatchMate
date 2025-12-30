@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { POST_API_END_POINT, Request_API_END_POINT } from "@/utils/constant";
-
 import SearchFilter from "@/components/SearchFilter";
 import { useSearchFilter } from "@/hooks/useSearchFilter";
 import toast from "react-hot-toast";
-import { ClipboardList } from "lucide-react";
+import { LayoutGrid, SlidersHorizontal, Loader2, Sparkles } from "lucide-react";
 import PostCard from "../Post/PostCard";
 
 export default function ExplorePage() {
@@ -29,43 +29,33 @@ export default function ExplorePage() {
   const [visiblePosts, setVisiblePosts] = useState(10);
   const postsRef = useRef(null);
 
-  // ✅ Fetch Posts
   useEffect(() => {
-    const fetchPosts = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        const res = await axios.get(`${POST_API_END_POINT}/all-posts`);
-        setPosts(res.data.posts);
+        const [postsRes, reqRes] = await Promise.all([
+          axios.get(`${POST_API_END_POINT}/all-posts`),
+          axios
+            .get(`${Request_API_END_POINT}/requests`, { withCredentials: true })
+            .catch(() => ({ data: { requests: [] } })),
+        ]);
+
+        setPosts(postsRes.data.posts);
+
+        const statusMap = {};
+        reqRes.data.requests.forEach((r) => {
+          if (r.receiver?._id) statusMap[r.receiver._id] = r.status;
+        });
+        setRequestStatus(statusMap);
       } catch (err) {
-        console.error("Fetch Posts Error:", err);
+        console.error("Data Fetching Error:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchPosts();
+    fetchData();
   }, []);
 
-  // ✅ Fetch Requests
-  useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        const res = await axios.get(`${Request_API_END_POINT}/requests`, {
-          withCredentials: true,
-        });
-        const statusMap = {};
-        res.data.requests.forEach((r) => {
-          if (r.receiver?._id) {
-            statusMap[r.receiver._id] = r.status;
-          }
-        });
-        setRequestStatus(statusMap);
-      } catch (err) {
-        toast.error("Failed to load request status");
-      }
-    };
-    fetchRequests();
-  }, []);
-
-  // ✅ URL Sync for Search Query
   useEffect(() => {
     const query = new URLSearchParams(location.search);
     if (searchInput) query.set("search", searchInput);
@@ -73,7 +63,6 @@ export default function ExplorePage() {
     navigate({ search: query.toString() }, { replace: true });
   }, [searchInput]);
 
-  // 🔍 Filter Posts
   const filteredPosts = useSearchFilter(posts, searchInput, [
     "city",
     "area",
@@ -81,7 +70,7 @@ export default function ExplorePage() {
   ]);
 
   const finalFilteredPosts = filteredPosts
-    .filter((post) => post.user) // only posts with user
+    .filter((post) => post.user)
     .filter((post) => {
       const genderMatch = selectedGender
         ? post.lookingForGender === selectedGender
@@ -90,61 +79,121 @@ export default function ExplorePage() {
         ? post.user?.university === selectedUniversity
         : true;
       const hasRoomMatch =
-        filterHasRoom === "yes" ? post.hasRoom === true : true; // ✅ filter by hasRoom
+        filterHasRoom === "yes" ? post.hasRoom === true : true;
       return genderMatch && uniMatch && hasRoomMatch;
     });
 
   return (
-    <div className="bg-gradient-to-r from-[#0f172a] via-[#1e3a8a] to-[#6d28d9] min-h-screen p-4 pb-24">
-      {/* 🔍 Search Filter */}
-      <SearchFilter
-        search={searchInput}
-        setSearch={setSearchInput}
-        showFilters={showFilters}
-        setShowFilters={setShowFilters}
-        filterHasRoom={filterHasRoom}
-        setFilterHasRoom={setFilterHasRoom}
-        selectedGender={selectedGender}
-        setSelectedGender={setSelectedGender}
-        selectedUniversity={selectedUniversity}
-        setSelectedUniversity={setSelectedUniversity}
-        universities={Array.from(
-          new Set(posts.map((p) => p.user?.university))
-        ).filter((u) => u)}
-      />
+    <div className="bg-black min-h-screen text-white pb-32">
+      {/* 1. iOS STYLE TOP HEADER & FILTERS */}
+      <header className="sticky top-0 z-40 bg-black/60 backdrop-blur-2xl border-b border-white/5 pt-12 pb-6 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <p className="text-indigo-400 text-xs font-bold uppercase tracking-[0.2em] mb-1">
+                Discover
+              </p>
+              <h1 className="text-4xl md:text-5xl font-black tracking-tighter flex items-center gap-3">
+                Explore <Sparkles className="text-yellow-400" size={32} />
+              </h1>
+            </div>
 
-      {/* 📝 Posts Section */}
-      <div ref={postsRef} className="space-y-10">
-        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-          <ClipboardList /> All Posts
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {loading ? (
-            <p className="text-white/80">Loading...</p>
-          ) : finalFilteredPosts.length ? (
-            finalFilteredPosts
-              .slice(0, visiblePosts)
-              .map((post) => (
-                <PostCard
-                  key={post._id}
-                  post={post}
-                  requestStatus={requestStatus[post.user?._id]}
-                />
-              ))
-          ) : (
-            <p className="text-white/80">No posts found</p>
-          )}
-        </div>
-        {visiblePosts < finalFilteredPosts.length && (
-          <div className="flex justify-center mt-4">
-            <button
-              onClick={() => setVisiblePosts(visiblePosts + 10)}
-              className="border border-white/20 px-4 py-2 rounded-full text-white hover:bg-white/10">
-              Load More
-            </button>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowFilters(!showFilters)}
+              className={`p-3 rounded-2xl flex items-center gap-2 transition-all border ${
+                showFilters
+                  ? "bg-white text-black border-white"
+                  : "bg-white/5 text-white border-white/10"
+              }`}>
+              <SlidersHorizontal size={20} />
+              <span className="text-sm font-bold hidden md:inline">
+                Filters
+              </span>
+            </motion.button>
           </div>
+
+          <SearchFilter
+            search={searchInput}
+            setSearch={setSearchInput}
+            showFilters={showFilters}
+            setShowFilters={setShowFilters}
+            filterHasRoom={filterHasRoom}
+            setFilterHasRoom={setFilterHasRoom}
+            selectedGender={selectedGender}
+            setSelectedGender={setSelectedGender}
+            selectedUniversity={selectedUniversity}
+            setSelectedUniversity={setSelectedUniversity}
+            universities={Array.from(
+              new Set(posts.map((p) => p.user?.university))
+            ).filter(Boolean)}
+          />
+        </div>
+      </header>
+
+      {/* 2. POSTS GRID (Masonry Feel) */}
+      <main className="max-w-7xl mx-auto px-6 mt-10" ref={postsRef}>
+        <div className="flex items-center gap-2 text-gray-500 mb-6 px-2">
+          <LayoutGrid size={16} />
+          <span className="text-xs font-bold uppercase tracking-widest">
+            {finalFilteredPosts.length} matches found
+          </span>
+        </div>
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-40 gap-4">
+            <Loader2 className="animate-spin text-indigo-500" size={40} />
+            <p className="text-gray-500 font-medium animate-pulse">
+              Hunting for the best vibes...
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              <AnimatePresence mode="popLayout">
+                {finalFilteredPosts.slice(0, visiblePosts).map((post, idx) => (
+                  <motion.div
+                    key={post._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}>
+                    <PostCard
+                      post={post}
+                      requestStatus={requestStatus[post.user?._id]}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+
+            {/* Empty State */}
+            {!finalFilteredPosts.length && (
+              <div className="text-center py-40">
+                <div className="bg-white/5 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <LayoutGrid className="text-gray-600" size={32} />
+                </div>
+                <h3 className="text-xl font-bold italic text-gray-400">
+                  No one matches your vibe yet.
+                </h3>
+                <p className="text-gray-600 mt-2">
+                  Try adjusting your filters.
+                </p>
+              </div>
+            )}
+
+            {/* 3. LOAD MORE (iOS Button Style) */}
+            {visiblePosts < finalFilteredPosts.length && (
+              <div className="flex justify-center mt-20">
+                <button
+                  onClick={() => setVisiblePosts((prev) => prev + 10)}
+                  className="bg-[#1c1c1e] text-white px-10 py-4 rounded-2xl font-bold border border-white/5 hover:bg-white/10 active:scale-95 transition-all shadow-xl">
+                  Load more posts
+                </button>
+              </div>
+            )}
+          </>
         )}
-      </div>
+      </main>
     </div>
   );
 }
