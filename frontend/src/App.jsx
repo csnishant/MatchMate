@@ -34,16 +34,19 @@ function App() {
     <>
       <Toaster position="bottom-right" reverseOrder={false} />
       <Navbar />
-
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/all-posts" element={<ExplorePage />} />
-        <Route path="/user-profile/:id" element={<ViewProfile />} />
-      </Routes>
+      <main className="pt-16">
+        
+        {/* To offset content below the fixed Navbar */}
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/all-posts" element={<ExplorePage />} />
+          <Route path="/user-profile/:id" element={<ViewProfile />} />
+        </Routes>
+      </main>
     </>
   );
 }
