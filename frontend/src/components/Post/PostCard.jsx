@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin,
-  Wallet,
   User,
   Calendar,
   Clock,
@@ -12,6 +11,7 @@ import {
   Home,
   Users,
   Info,
+  Search,
 } from "lucide-react";
 
 export default function PostCard({ post }) {
@@ -19,7 +19,6 @@ export default function PostCard({ post }) {
 
   if (!post || !post.user) return null;
 
-  // Formatting Dates
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-IN", {
       day: "numeric",
@@ -33,7 +32,7 @@ export default function PostCard({ post }) {
       layout
       className="w-full max-w-[500px] md:max-w-none mx-auto bg-[#1c1c1e] text-white rounded-[2.5rem] shadow-2xl border border-white/5 overflow-hidden">
       <div className={`p-5 flex flex-col ${expanded ? "gap-6" : "gap-4"}`}>
-        {/* HEADER: User Info & Match */}
+        {/* HEADER: User Info & Budget */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -46,7 +45,7 @@ export default function PostCard({ post }) {
                 className="w-14 h-14 rounded-full object-cover border-2 border-indigo-500/20"
               />
               {post.hasRoom && (
-                <div className="absolute -top-1 -right-1 bg-blue-500 p-1 rounded-full border-2 border-[#1c1c1e]">
+                <div className="absolute -top-1 -right-1 bg-green-500 p-1 rounded-full border-2 border-[#1c1c1e]">
                   <Home size={10} className="text-white" />
                 </div>
               )}
@@ -72,34 +71,39 @@ export default function PostCard({ post }) {
           </div>
         </div>
 
-        {/* QUICK TAGS (Visible when collapsed) */}
-        {!expanded && (
-          <div className="flex flex-wrap gap-2">
+        {/* CLEAR BADGES SECTION */}
+        <div className="flex flex-wrap gap-2">
+          {/* Gender Requirement Badge */}
+          <Badge
+            icon={<User size={13} />}
+            label="Looking for:"
+            text={post.lookingForGender}
+            color="bg-blue-500/10 text-blue-400 border border-blue-500/20"
+          />
+
+          {/* Stay Duration Badge */}
+          <Badge
+            icon={<Clock size={13} />}
+            label="Stay:"
+            text={`${post.minStayDuration} Months`}
+            color="bg-purple-500/10 text-purple-400 border border-purple-500/20"
+          />
+
+          {/* Room Status Badge */}
+          {post.hasRoom ? (
             <Badge
-              icon={<User size={12} />}
-              text={post.lookingForGender}
-              color="bg-blue-500/10 text-blue-400"
+              icon={<Home size={13} />}
+              text="I have a Room"
+              color="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
             />
+          ) : (
             <Badge
-              icon={<Clock size={12} />}
-              text={`${post.minStayDuration}m stay`}
-              color="bg-purple-500/10 text-purple-400"
+              icon={<Search size={13} />}
+              text="Looking for Room"
+              color="bg-orange-500/10 text-orange-400 border border-orange-500/20"
             />
-            {post.hasRoom ? (
-              <Badge
-                icon={<Home size={12} />}
-                text="Has Room"
-                color="bg-orange-500/10 text-orange-400"
-              />
-            ) : (
-              <Badge
-                icon={<Users size={12} />}
-                text="Looking"
-                color="bg-zinc-500/10 text-zinc-400"
-              />
-            )}
-          </div>
-        )}
+          )}
+        </div>
 
         {/* EXPANDED CONTENT */}
         <AnimatePresence>
@@ -109,7 +113,6 @@ export default function PostCard({ post }) {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               className="space-y-5">
-              {/* Timeline Grid */}
               <div className="grid grid-cols-2 gap-3">
                 <DetailBox
                   label="Available From"
@@ -123,19 +126,20 @@ export default function PostCard({ post }) {
                 />
               </div>
 
-              {/* Room Specifics */}
+              {/* Room Specifics - Shown only if poster has a room */}
               {post.hasRoom && (
                 <div className="bg-white/5 rounded-3xl p-4 border border-white/5 space-y-3">
                   <h4 className="text-xs font-bold uppercase text-indigo-400 flex items-center gap-2">
-                    <Home size={14} /> Room Details
+                    <Home size={14} /> My Room Details
                   </h4>
                   <p className="text-sm text-gray-300 leading-relaxed">
                     {post.roomDescription}
                   </p>
-                  <div className="flex justify-between pt-2 border-t border-white/5">
+
+                  <div className="flex justify-between pt-2 border-t border-white/10">
                     <div>
                       <p className="text-[10px] text-gray-500 uppercase">
-                        Total Rent
+                        Total Flat Rent
                       </p>
                       <p className="font-bold tracking-tight">
                         ₹{post.totalRoomRent}
@@ -151,9 +155,8 @@ export default function PostCard({ post }) {
                     </div>
                   </div>
 
-                  {/* Image Gallery */}
                   {post.roomImages?.length > 0 && (
-                    <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth">
+                    <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
                       {post.roomImages.map((img, i) => (
                         <img
                           key={i}
@@ -167,10 +170,10 @@ export default function PostCard({ post }) {
                 </div>
               )}
 
-              {/* Description */}
+              {/* General Description */}
               <div className="px-1">
                 <h4 className="text-xs font-bold uppercase text-indigo-400 flex items-center gap-2 mb-1">
-                  <Info size={14} /> Description
+                  <Info size={14} /> About this post
                 </h4>
                 <p className="text-sm text-gray-300 italic">
                   "{post.description}"
@@ -195,7 +198,7 @@ export default function PostCard({ post }) {
           <button
             onClick={() => setExpanded(!expanded)}
             className="text-xs font-bold text-indigo-400 uppercase tracking-widest ml-auto">
-            {expanded ? "Less" : "More"}
+            {expanded ? "Show Less" : "Show More"}
           </button>
         </div>
       </div>
@@ -203,12 +206,16 @@ export default function PostCard({ post }) {
   );
 }
 
-// UI Components
-function Badge({ icon, text, color }) {
+// ENHANCED UI COMPONENTS
+function Badge({ icon, label, text, color }) {
   return (
     <div
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold ${color}`}>
-      {icon} {text}
+      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold ${color}`}>
+      {icon}
+      <span>
+        {label && <span className="opacity-70 mr-1 font-medium">{label}</span>}
+        {text}
+      </span>
     </div>
   );
 }
