@@ -1,4 +1,5 @@
 import User from "../models/user.js";
+import Request from "../models/request.js";
 
 /* ==========  UPDATE PROFILE CONTROLLER ========== */
 
@@ -42,30 +43,55 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
+
+
 export const viewUserProfile = async (req, res) => {
   try {
     const { id } = req.params;
+    const loggedInUserId = req.userId;
 
-    const user = await User.findById(id).select(
+    const user = await User.findById(id)
+      .select(
+        `
+        name email age gender phone
+        city state university course year profilePic
+        sleepTime wakeTime
+        smoking drinking
+        cleanlinessLevel foodPreference
+        introvertOrExtrovert personality
+        hobbies preferredLanguages
+        roommateExpectations guestsAllowed
+        createdAt
       `
-name email age gender phone
-city state university course year profilePic
-sleepTime wakeTime
-smoking drinking
-cleanlinessLevel foodPreference
-introvertOrExtrovert personality
-hobbies preferredLanguages
-roommateExpectations guestsAllowed
-createdAt
-`
-    );
+      )
+      .lean(); // 🔥 important
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
+    // 🔐 Check accepted request (both sides)
+    const acceptedRequest = await Request.findOne({
+      $or: [
+        { sender: loggedInUserId, receiver: id },
+        { sender: id, receiver: loggedInUserId },
+      ],
+      status: "accepted",
+    });
+
+    const isRequestAccepted = !!acceptedRequest;
+
+    // ❌ Phone hide if not accepted
+    if (!isRequestAccepted) {
+      delete user.phone;
+    }
+
     res.status(200).json({
       success: true,
-      user,
+      user: {
+        ...user,
+        isRequestAccepted,
+      },
     });
   } catch (error) {
     console.error(error);
