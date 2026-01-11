@@ -5,8 +5,8 @@ import { TextField } from "@mui/material";
 
 export default function AcademicSection({ form, handleChange }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {/* University Field */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {/* UNIVERSITY */}
       <TextField
         label="University"
         name="university"
@@ -15,7 +15,7 @@ export default function AcademicSection({ form, handleChange }) {
         fullWidth
       />
 
-      {/* Course Field */}
+      {/* COURSE */}
       <TextField
         label="Course"
         name="course"
@@ -24,7 +24,7 @@ export default function AcademicSection({ form, handleChange }) {
         fullWidth
       />
 
-      {/* Year Field */}
+      {/* YEAR */}
       <TextField
         label="Year"
         name="year"
@@ -33,16 +33,16 @@ export default function AcademicSection({ form, handleChange }) {
         fullWidth
       />
 
-      {/* Phone Number Field */}
+      {/* PHONE */}
       <TextField
-        label="Phone"
+        label="Phone Number"
         name="phone"
         value={form.phone}
         onChange={handleChange}
         fullWidth
       />
 
-      {/* City Field */}
+      {/* CITY */}
       <TextField
         label="City"
         name="city"
@@ -51,7 +51,7 @@ export default function AcademicSection({ form, handleChange }) {
         fullWidth
       />
 
-      {/* State Field */}
+      {/* STATE */}
       <TextField
         label="State"
         name="state"

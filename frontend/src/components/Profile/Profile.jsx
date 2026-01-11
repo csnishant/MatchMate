@@ -1,36 +1,61 @@
 import React, { useEffect, useState } from "react";
-import {
-  Button,
-  Stepper,
-  Step,
-  StepLabel,
-  LinearProgress,
-} from "@mui/material";
-import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
+import { motion, AnimatePresence } from "framer-motion";
+import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
 import { setLoading, setUser } from "@/redux/authSlice";
 import axios from "axios";
-import { USER_API_END_POINT } from "@/utils/constant.js";
+import { USER_API_END_POINT } from "@/utils/constant";
 import toast from "react-hot-toast";
+import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+
+// Sections
+import BasicInfo from "./BasicInfo";
 import AcademicSection from "./AcademicSection";
 import Lifestyle from "./Lifestyle";
 import Preferences from "./Preferences";
 import Expectations from "./Expectations";
-import BasicInfo from "./BasicInfo";
 
-const steps = [
-  "Basic Info",
-  "Academic",
-  "Lifestyle",
-  "Preferences",
-  "Expectations",
-];
+const steps = ["Basic", "Academic", "Lifestyle", "Preferences", "Expectations"];
+
+// 🌙 GLOBAL DARK THEME FOR MUI
+const darkTheme = createTheme({
+  palette: {
+    mode: "dark",
+    background: {
+      default: "#000",
+      paper: "#1c1c1e",
+    },
+  },
+  components: {
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: "18px",
+          backgroundColor: "#1c1c1e",
+        },
+        notchedOutline: {
+          borderColor: "rgba(255,255,255,0.1)",
+        },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          color: "#9ca3af",
+        },
+      },
+    },
+  },
+});
 
 export default function Profile() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
+
   const [step, setStep] = useState(0);
   const [image, setImage] = useState(null);
 
@@ -41,22 +66,18 @@ export default function Profile() {
     university: "",
     course: "",
     year: "",
-    phone: "",
     city: "",
-    state: "",
+    phone: "",
     profilePic: "",
     sleepTime: dayjs(),
     wakeTime: dayjs(),
     smoking: false,
     drinking: false,
-    cleanlinessLevel: "",
     foodPreference: "",
     personality: "",
     hobbies: [],
     preferredLanguages: [],
-    guestsAllowed: "",
     roommateExpectations: "",
-    introvertOrExtrovert: "",
   });
 
   useEffect(() => {
@@ -69,132 +90,142 @@ export default function Profile() {
       });
       setImage(user.profilePic || null);
     }
-    // eslint-disable-next-line
   }, [user]);
 
-  const handleNext = () => {
-    if (step < steps.length - 1) setStep(step + 1);
-  };
-  const handleBack = () => {
-    if (step > 0) setStep(step - 1);
-  };
+  const handleNext = () => step < steps.length - 1 && setStep(step + 1);
+  const handleBack = () => step > 0 && setStep(step - 1);
+
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+    if (!e || !e.target) return; // 🔥 prevents crash
+
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleChipToggle = (field, value) => {
     setForm((prev) => {
-      const arr = [...prev[field]];
-      const idx = arr.indexOf(value);
-      if (idx > -1) arr.splice(idx, 1);
-      else arr.push(value);
-      return { ...prev, [field]: arr };
-    });
-  };
+      const currentArray = prev[field] || [];
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setImage(url);
-      setForm({ ...form, profilePic: url });
-    }
+      return {
+        ...prev,
+        [field]: currentArray.includes(value)
+          ? currentArray.filter((item) => item !== value)
+          : [...currentArray, value],
+      };
+    });
   };
 
   const handleSubmit = async () => {
     dispatch(setLoading(true));
-    const payload = {
-      ...form,
-      sleepTime: dayjs(form.sleepTime).format("HH:mm"),
-      wakeTime: dayjs(form.wakeTime).format("HH:mm"),
-    };
     try {
+      const payload = {
+        ...form,
+        sleepTime: dayjs(form.sleepTime).format("HH:mm"),
+        wakeTime: dayjs(form.wakeTime).format("HH:mm"),
+      };
+
       const res = await axios.put(
-        `${USER_API_END_POINT}/profile/:id`,
+        `${USER_API_END_POINT}/profile/${user._id}`,
         payload,
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
+
       dispatch(setUser(res.data.user));
-      toast.success(res.data.message);
       localStorage.setItem("user", JSON.stringify(res.data.user));
+      toast.success("Profile Updated ✨");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Profile update failed!");
+      toast.error("Update failed");
     } finally {
       dispatch(setLoading(false));
     }
   };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <div className="w-full max-w-3xl bg-white rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] px-6 py-8">
-          
-          {/* Stepper with clean iOS-style */}
-          <Stepper activeStep={step} alternativeLabel>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel
-                  sx={{
-                    "& .MuiStepLabel-label": {
-                      fontSize: "0.875rem",
-                      fontWeight: "500",
-                      color: "#555",
-                    },
-                  }}>
-                  {label}
-                </StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+    <ThemeProvider theme={darkTheme}>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        {/* ❌ text-white removed */}
+        <div className="min-h-screen bg-black p-4 md:p-8">
+          <div className="max-w-2xl mx-auto flex flex-col min-h-[90vh]">
+            {/* HEADER */}
+            <header className="sticky top-0 z-20 bg-black/80 backdrop-blur-md pt-4 pb-6">
+              <div className="flex items-center justify-between mb-6 px-2">
+                <button
+                  onClick={handleBack}
+                  disabled={step === 0}
+                  className={`p-2 rounded-full ${
+                    step === 0 ? "opacity-0" : "bg-white/5 hover:bg-white/10"
+                  }`}>
+                  <ChevronLeft className="text-white" />
+                </button>
 
-          <LinearProgress
-            variant="determinate"
-            value={((step + 1) / steps.length) * 100}
-            className="my-5 rounded-full bg-gray-200"
-            sx={{ height: 6 }}
-          />
+                <div className="text-center">
+                  <h1 className="text-white text-xl font-bold">
+                    {steps[step]}
+                  </h1>
+                  <p className="text-[10px] text-gray-400 uppercase">
+                    Step {step + 1} of 5
+                  </p>
+                </div>
 
-          {/* Step Forms */}
-          <div className="space-y-6">
-            {step === 0 && <BasicInfo form={form} handleChange={handleChange} />}
-            {step === 1 && (
-              <AcademicSection
-                form={form}
-                image={image}
-                handleImageUpload={handleImageUpload}
-                handleChange={handleChange}
-              />
-            )}
-            {step === 2 && <Lifestyle form={form} setForm={setForm} handleChange={handleChange} />}
-            {step === 3 && (
-              <Preferences form={form} handleChipToggle={handleChipToggle} handleChange={handleChange} />
-            )}
-            {step === 4 && <Expectations form={form} handleChange={handleChange} handleSubmit={handleSubmit} />}
-          </div>
+                <div className="w-10" />
+              </div>
+            </header>
 
-          {/* Navigation Buttons */}
-          <div className="flex justify-between items-center pt-6 mt-4 border-t border-gray-200">
-            <Button
-              variant="outlined"
-              disabled={step === 0}
-              onClick={handleBack}
-              sx={{ borderRadius: "999px", textTransform: "none", padding: "6px 20px" }}>
-              Back
-            </Button>
-            {step < steps.length - 1 && (
-              <Button
-                variant="contained"
-                onClick={handleNext}
-                sx={{ borderRadius: "999px", textTransform: "none", padding: "6px 24px" }}>
-                Next
-              </Button>
-            )}
+            {/* FORM */}
+            <main className="flex-grow mt-4">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={step}
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="bg-[#1c1c1e] rounded-[2.5rem] p-6 md:p-8 border border-white/5 shadow-2xl">
+                  {step === 0 && (
+                    <BasicInfo form={form} handleChange={handleChange} />
+                  )}
+                  {step === 1 && (
+                    <AcademicSection form={form} handleChange={handleChange} />
+                  )}
+                  {step === 2 && (
+                    <Lifestyle form={form} handleChange={handleChange} />
+                  )}
+                  {step === 3 && (
+                    <Preferences
+                      form={form}
+                      handleChange={handleChange}
+                      handleChipToggle={handleChipToggle}
+                    />
+                  )}
+                  {step === 4 && (
+                    <Expectations form={form} handleChange={handleChange} />
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </main>
+
+            {/* FOOTER */}
+            <footer className="sticky bottom-0 bg-black/80 backdrop-blur-md py-6 px-2 mt-8">
+              {step < steps.length - 1 ? (
+                <button
+                  onClick={handleNext}
+                  className="w-full bg-white text-black h-14 rounded-2xl font-bold text-lg">
+                  Continue <ChevronRight className="inline ml-2" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleSubmit}
+                  className="w-full bg-indigo-600 text-white h-14 rounded-2xl font-bold text-lg">
+                  Complete Profile <Check className="inline ml-2" />
+                </button>
+              )}
+            </footer>
           </div>
         </div>
-      </div>
-    </LocalizationProvider>
+      </LocalizationProvider>
+    </ThemeProvider>
   );
 }

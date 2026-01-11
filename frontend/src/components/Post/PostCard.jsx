@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -6,25 +6,77 @@ import {
   User,
   Calendar,
   Clock,
-  MessageCircle,
   ChevronRight,
   Home,
-  Users,
-  Info,
   Search,
+  Info,
+  PhoneCall,
 } from "lucide-react";
+import axios from "axios";
 
-export default function PostCard({ post }) {
+export default function PostCard({ post, authToken }) {
   const [expanded, setExpanded] = useState(false);
+  const [requestStatus, setRequestStatus] = useState("none");
+  const [requestId, setRequestId] = useState(null);
+  const [callInfo, setCallInfo] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   if (!post || !post.user) return null;
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-IN", {
+  // 1️⃣ Format date
+  const formatDate = (dateString) =>
+    new Date(dateString).toLocaleDateString("en-IN", {
       day: "numeric",
       month: "short",
       year: "2-digit",
     });
+
+  // 2️⃣ Fetch request status on mount
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const res = await axios.get(`/api/requests/status/${post._id}`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        setRequestStatus(res.data.status);
+        setRequestId(res.data.requestId || null);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchStatus();
+  }, [post._id, authToken]);
+
+  // 3️⃣ Send request
+  const handleSendRequest = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        `/api/requests/send/${post._id}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${authToken}` },
+        }
+      );
+      setRequestStatus(res.data.status); // should be "pending"
+    } catch (err) {
+      console.log(err);
+      alert(err.response?.data?.message || "Error sending request");
+    }
+    setLoading(false);
+  };
+
+  // 4️⃣ Get call number (if accepted)
+  const handleGetCall = async () => {
+    try {
+      const res = await axios.get(`/api/requests/call/${post._id}`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      setCallInfo(res.data);
+    } catch (err) {
+      console.log(err);
+      alert(err.response?.data?.message || "Request not accepted yet");
+    }
   };
 
   return (
@@ -32,7 +84,7 @@ export default function PostCard({ post }) {
       layout
       className="w-full max-w-[500px] md:max-w-none mx-auto bg-[#1c1c1e] text-white rounded-[2.5rem] shadow-2xl border border-white/5 overflow-hidden">
       <div className={`p-5 flex flex-col ${expanded ? "gap-6" : "gap-4"}`}>
-        {/* HEADER: User Info & Budget */}
+        {/* HEADER */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -71,25 +123,20 @@ export default function PostCard({ post }) {
           </div>
         </div>
 
-        {/* CLEAR BADGES SECTION */}
+        {/* BADGES */}
         <div className="flex flex-wrap gap-2">
-          {/* Gender Requirement Badge */}
           <Badge
             icon={<User size={13} />}
             label="Looking for:"
             text={post.lookingForGender}
             color="bg-blue-500/10 text-blue-400 border border-blue-500/20"
           />
-
-          {/* Stay Duration Badge */}
           <Badge
             icon={<Clock size={13} />}
             label="Stay:"
             text={`${post.minStayDuration} Months`}
             color="bg-purple-500/10 text-purple-400 border border-purple-500/20"
           />
-
-          {/* Room Status Badge */}
           {post.hasRoom ? (
             <Badge
               icon={<Home size={13} />}
@@ -126,7 +173,6 @@ export default function PostCard({ post }) {
                 />
               </div>
 
-              {/* Room Specifics - Shown only if poster has a room */}
               {post.hasRoom && (
                 <div className="bg-white/5 rounded-3xl p-4 border border-white/5 space-y-3">
                   <h4 className="text-xs font-bold uppercase text-indigo-400 flex items-center gap-2">
@@ -135,42 +181,9 @@ export default function PostCard({ post }) {
                   <p className="text-sm text-gray-300 leading-relaxed">
                     {post.roomDescription}
                   </p>
-
-                  <div className="flex justify-between pt-2 border-t border-white/10">
-                    <div>
-                      <p className="text-[10px] text-gray-500 uppercase">
-                        Total Flat Rent
-                      </p>
-                      <p className="font-bold tracking-tight">
-                        ₹{post.totalRoomRent}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] text-gray-500 uppercase">
-                        Your Share
-                      </p>
-                      <p className="font-bold text-green-400">
-                        ₹{post.rentPerRoommate}
-                      </p>
-                    </div>
-                  </div>
-
-                  {post.roomImages?.length > 0 && (
-                    <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                      {post.roomImages.map((img, i) => (
-                        <img
-                          key={i}
-                          src={img}
-                          className="w-40 h-28 object-cover rounded-2xl flex-shrink-0"
-                          alt="Room"
-                        />
-                      ))}
-                    </div>
-                  )}
                 </div>
               )}
 
-              {/* General Description */}
               <div className="px-1">
                 <h4 className="text-xs font-bold uppercase text-indigo-400 flex items-center gap-2 mb-1">
                   <Info size={14} /> About this post
@@ -185,9 +198,37 @@ export default function PostCard({ post }) {
 
         {/* ACTIONS */}
         <div className="flex items-center gap-3 pt-2">
-          <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
-            <MessageCircle size={18} /> Chat
-          </button>
+          {/* ✅ REQUEST BUTTON */}
+          {requestStatus === "none" && (
+            <button
+              disabled={loading}
+              onClick={handleSendRequest}
+              className="flex-1 bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
+              Send Request
+            </button>
+          )}
+
+          {requestStatus === "pending" && (
+            <button className="flex-1 bg-gray-700 cursor-not-allowed py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
+              Request Pending
+            </button>
+          )}
+
+          {requestStatus === "accepted" && !callInfo && (
+            <button
+              onClick={handleGetCall}
+              className="flex-1 bg-green-600 hover:bg-green-500 active:scale-95 transition-all py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
+              Show Contact
+            </button>
+          )}
+
+          {callInfo && (
+            <a
+              href={`tel:${callInfo.phone}`}
+              className="flex-1 bg-green-600 hover:bg-green-500 active:scale-95 transition-all py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
+              <PhoneCall size={18} /> {callInfo.name}: {callInfo.phone}
+            </a>
+          )}
 
           <Link
             to={`/user-profile/${post.user._id}`}
@@ -206,7 +247,7 @@ export default function PostCard({ post }) {
   );
 }
 
-// ENHANCED UI COMPONENTS
+// Badge Component
 function Badge({ icon, label, text, color }) {
   return (
     <div
@@ -220,6 +261,7 @@ function Badge({ icon, label, text, color }) {
   );
 }
 
+// DetailBox Component
 function DetailBox({ label, value, icon }) {
   return (
     <div className="bg-white/5 p-3 rounded-2xl border border-white/5 flex items-start gap-2">

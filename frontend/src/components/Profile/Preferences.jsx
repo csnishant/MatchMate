@@ -16,13 +16,14 @@ const Preferences = ({ form, handleChipToggle, handleChange }) => {
           />
         ))}
       </div>
+
       <div>
         <label className="block mb-1">Preferred Languages</label>
         {["Hindi", "English", "Marathi", "Gujarati"].map((lang) => (
           <Chip
             key={lang}
             label={lang}
-            onClick={() => handleChipToggle("preferredLanguages", lang)}
+            onClick={() => handleChipToggle("preferredLanguages", lang)} // ✅
             color={
               form.preferredLanguages.includes(lang) ? "primary" : "default"
             }
@@ -30,10 +31,11 @@ const Preferences = ({ form, handleChipToggle, handleChange }) => {
           />
         ))}
       </div>
+
       <TextField
         label="Personality"
-        name="introvertOrExtrovert"
-        value={form.introvertOrExtrovert}
+        name="Personality"
+        value={form.Personality}
         onChange={handleChange}
         select
         fullWidth>

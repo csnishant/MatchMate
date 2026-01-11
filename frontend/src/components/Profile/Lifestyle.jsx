@@ -22,27 +22,27 @@ const Lifestyle = ({ form, setForm, handleChange }) => {
       <TextField
         label="Do you smoke?"
         name="smoking"
-        value={form.smoking ? "Yes" : "No"}
-        onChange={(e) =>
-          setForm({ ...form, smoking: e.target.value === "Yes" })
-        }
+        value={form.smoking}
+        onChange={handleChange}
         select
         fullWidth>
-        <MenuItem value="Yes">Yes</MenuItem>
-        <MenuItem value="No">No</MenuItem>
+        <MenuItem value="">Select</MenuItem>
+        <MenuItem value={true}>Yes</MenuItem>
+        <MenuItem value={false}>No</MenuItem>
       </TextField>
+
       <TextField
         label="Do you drink?"
         name="drinking"
-        value={form.drinking ? "Yes" : "No"}
-        onChange={(e) =>
-          setForm({ ...form, drinking: e.target.value === "Yes" })
-        }
+        value={form.drinking}
+        onChange={handleChange}
         select
         fullWidth>
-        <MenuItem value="Yes">Yes</MenuItem>
-        <MenuItem value="No">No</MenuItem>
+        <MenuItem value="">Select</MenuItem>
+        <MenuItem value={true}>Yes</MenuItem>
+        <MenuItem value={false}>No</MenuItem>
       </TextField>
+
       <TextField
         label="Cleanliness Level"
         name="cleanlinessLevel"
