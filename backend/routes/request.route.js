@@ -1,22 +1,28 @@
-import express from "express"
+import express from "express";
 import isAuthenticated from "../middleware/authMiddleware.js";
 import {
+  sendRequest,
+  updateRequestStatus,
   getAcceptedRequests,
   getMyRequests,
   getReceivedRequests,
-  sendRequest,
-  updateRequestStatus,
+  getRequestStatus, // <- import
 } from "../controllers/request.controller.js";
 
 const router = express.Router();
 
-router.post("/send", isAuthenticated, sendRequest);
+// send request
+router.post("/send/:receiverId", isAuthenticated, sendRequest);
 
-router.get("/accepted", isAuthenticated, getAcceptedRequests);
-router.get("/requests", isAuthenticated, getMyRequests);
-router.get("/received", isAuthenticated, getReceivedRequests);
-
-
+// update request (accept / reject)
 router.put("/update/:requestId", isAuthenticated, updateRequestStatus);
+
+// status check endpoint
+router.get("/status/:receiverId", isAuthenticated, getRequestStatus); // <- add this
+
+// lists
+router.get("/accepted", isAuthenticated, getAcceptedRequests);
+router.get("/sent", isAuthenticated, getMyRequests);
+router.get("/received", isAuthenticated, getReceivedRequests);
 
 export default router;
