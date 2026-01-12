@@ -63,9 +63,13 @@ export const createPost = async (req, res) => {
 
 export const getAllPosts = async (req, res) => {
   try {
-    const posts = await Post.find()
-      .populate("user", "name gender age university course profilePic hasRoom") // ✅ user ka basic info bhejega
-      .sort({ createdAt: -1 }); // Latest post upar
+    const userId = req.userId; // ✅ current logged-in user
+
+    const posts = await Post.find({
+      user: { $ne: userId }, // ❌ apni post exclude
+    })
+      .populate("user", "name gender age university course profilePic")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -76,3 +80,4 @@ export const getAllPosts = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch posts" });
   }
 };
+
