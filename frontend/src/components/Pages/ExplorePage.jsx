@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { POST_API_END_POINT, Request_API_END_POINT } from "@/utils/constant";
+import { POST_API_END_POINT } from "@/utils/constant";
 import SearchFilter from "@/components/SearchFilter";
 import { useSearchFilter } from "@/hooks/useSearchFilter";
 import toast from "react-hot-toast";
@@ -18,7 +18,6 @@ export default function ExplorePage() {
 
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [requestStatus, setRequestStatus] = useState({});
 
   const [searchInput, setSearchInput] = useState(initialSearch);
   const [selectedGender, setSelectedGender] = useState("");
@@ -34,25 +33,19 @@ export default function ExplorePage() {
       setLoading(true);
       try {
         const [postsRes, reqRes] = await Promise.all([
-          axios.get(`${POST_API_END_POINT}/all-posts`),
-          axios
-            .get(`${Request_API_END_POINT}/requests`, { withCredentials: true })
-            .catch(() => ({ data: { requests: [] } })),
+          axios.get(`${POST_API_END_POINT}/all-posts`, {
+            withCredentials: true, // ✅ yahan hona chahiye
+          }),
         ]);
 
         setPosts(postsRes.data.posts);
-
-        const statusMap = {};
-        reqRes.data.requests.forEach((r) => {
-          if (r.receiver?._id) statusMap[r.receiver._id] = r.status;
-        });
-        setRequestStatus(statusMap);
       } catch (err) {
         console.error("Data Fetching Error:", err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
@@ -157,10 +150,7 @@ export default function ExplorePage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}>
-                    <PostCard
-                      post={post}
-                      requestStatus={requestStatus[post.user?._id]}
-                    />
+                    <PostCard post={post} />
                   </motion.div>
                 ))}
               </AnimatePresence>

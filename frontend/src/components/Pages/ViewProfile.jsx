@@ -41,15 +41,13 @@ export default function ViewProfile() {
       console.error("Profile fetch failed", err);
     }
   };
-  
 
   /* ================= FETCH REQUEST STATUS ================= */
   const fetchRequestStatus = async () => {
     try {
-      const res = await axios.get(
-        `${REQUEST_API_END_POINT}/status/${id}`,
-        { withCredentials: true }
-      );
+      const res = await axios.get(`${REQUEST_API_END_POINT}/status/${id}`, {
+        withCredentials: true,
+      });
       setRequestStatus(res.data.status);
     } catch (err) {
       console.error("Request status error", err);
@@ -162,7 +160,7 @@ export default function ViewProfile() {
 
             {requestStatus === "accepted" && (
               <p className="text-green-400 font-semibold">
-                ✅ Request Accepted — You can call now
+                Request Accepted — You can call now
               </p>
             )}
           </div>
