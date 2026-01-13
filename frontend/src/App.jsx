@@ -20,6 +20,8 @@ import Notifications from "./components/Users/Notification";
 
 import ExplorePage from "./components/Pages/ExplorePage";
 import ViewProfile from "./components/Pages/ViewProfile";
+import MyPostsPage from "./components/Post/MyPost";
+import CreatePostPage from "./components/Post/CreatePost";
 
 function App() {
   const dispatch = useDispatch();
@@ -35,7 +37,6 @@ function App() {
       <Toaster position="bottom-right" reverseOrder={false} />
       <Navbar />
       <main className="pt-16">
-        
         {/* To offset content below the fixed Navbar */}
         <Routes>
           <Route path="/" element={<Home />} />
@@ -44,6 +45,9 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/all-posts" element={<ExplorePage />} />
+          <Route path="/my-post" element={<MyPostsPage />} />
+          <Route path="/create-post" element={<CreatePostPage />} />
+          <Route path="/create-post/:id" element={<CreatePostPage />} />
           <Route path="/user-profile/:id" element={<ViewProfile />} />
         </Routes>
       </main>
