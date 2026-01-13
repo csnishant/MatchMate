@@ -6,7 +6,8 @@ import {
   getAcceptedRequests,
   getMyRequests,
   getReceivedRequests,
-  getRequestStatus, // <- import
+  getRequestStatus,
+  deleteRequest, // <- import
 } from "../controllers/request.controller.js";
 
 const router = express.Router();
@@ -24,5 +25,6 @@ router.get("/status/:receiverId", isAuthenticated, getRequestStatus); // <- add 
 router.get("/accepted", isAuthenticated, getAcceptedRequests);
 router.get("/sent", isAuthenticated, getMyRequests);
 router.get("/received", isAuthenticated, getReceivedRequests);
+router.delete("/delete/:requestId", isAuthenticated, deleteRequest);
 
 export default router;

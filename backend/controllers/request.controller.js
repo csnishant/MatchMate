@@ -54,8 +54,6 @@ export const sendRequest = async (req, res) => {
   }
 };
 
-
-
 /* ===== ACCEPT / REJECT REQUEST ===== */
 export const updateRequestStatus = async (req, res) => {
   try {
@@ -138,27 +136,17 @@ export const getMyRequests = async (req, res) => {
 /* ===== GET RECEIVED REQUESTS ===== */
 export const getReceivedRequests = async (req, res) => {
   try {
-    const userId = req.userId;
-
-    const receivedRequests = await Request.find({
-      receiver: userId,
+    const requests = await Request.find({
+      receiver: req.userId,
     })
-      .populate("sender", "name profilePic")
-      .sort({ createdAt: -1 })
-      .lean();
+      .populate("sender", "name gender age profilePic")
+      .sort({ updatedAt: -1 });
 
-    res.status(200).json({
-      success: true,
-      receivedRequests,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "Failed to fetch received requests",
-    });
+    res.status(200).json({ requests });
+  } catch {
+    res.status(500).json({ message: "Server error" });
   }
 };
-
 
 export const getRequestStatus = async (req, res) => {
   try {
@@ -178,5 +166,39 @@ export const getRequestStatus = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Status check failed" });
+  }
+};
+
+/* ===== DELETE REQUEST (ONLY rejected / pending) ===== */
+export const deleteRequest = async (req, res) => {
+  try {
+    const { requestId } = req.params;
+
+    const request = await Request.findById(requestId);
+
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    // Only receiver can delete
+    if (request.receiver.toString() !== req.userId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    // ❌ Accepted request cannot be deleted
+    if (request.status === "accepted") {
+      return res
+        .status(400)
+        .json({ message: "Accepted request cannot be deleted" });
+    }
+
+    await request.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: "Request deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete request" });
   }
 };
