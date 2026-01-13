@@ -7,7 +7,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @tailwind utilities;
-
+html,
+body,
+#root {
+  background-color: #000000;
+}
 /* Custom diagonal white overlay */
 .clip-diagonal {
   clip-path: polygon(50% 0, 100% 0, 100% 100%, 0 100%);

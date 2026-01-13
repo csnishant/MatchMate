@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Request_API_END_POINT, USER_API_END_POINT } from "@/utils/constant";
+import {  } from "@/utils/constant";
 
 const Notifications = () => {
   const [requests, setRequests] = useState([]);
 
   const fetchNotifications = async () => {
     try {
-      const res = await axios.get(`${Request_API_END_POINT}/received`, {
+      const res = await axios.get(`${REQUEST_API_END_POINT}/received`, {
         withCredentials: true,
       });
       setRequests(res.data.requests);

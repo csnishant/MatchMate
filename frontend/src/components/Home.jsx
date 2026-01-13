@@ -11,7 +11,7 @@ import Hero from "@/components/Hero";
 import SearchBar from "./SearchBar";
 import Footer from "./Footer";
 import Community from "./Community";
-import CreatePostModal from "./Post/CreatePostModal";
+
 
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
@@ -91,21 +91,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 5. FLOATING ACTION BUTTON (iOS Style) */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100]">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setIsOpen(true)}
-          className="bg-white text-black px-8 py-4 rounded-full font-bold shadow-[0_20px_50px_rgba(255,255,255,0.15)] flex items-center gap-3 active:bg-gray-200 transition-all">
-          <Plus size={20} strokeWidth={3} />
-          Create Post
-        </motion.button>
-      </div>
+    
 
-      {/* Modal */}
-      <CreatePostModal isOpen={isOpen} close={() => setIsOpen(false)} />
-
+     
       <Footer />
     </main>
   );
