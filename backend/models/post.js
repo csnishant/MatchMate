@@ -85,6 +85,10 @@ const PostSchema = new mongoose.Schema({
   description: {
     type: String,
   },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
 
   // 🕒 Timestamps
   createdAt: {
