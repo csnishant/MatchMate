@@ -73,12 +73,12 @@ const Navbar = () => {
             label="Home"
             active={location.pathname === "/"}
           />
-          <NavLink
+          {/* <NavLink
             to="/all-users"
             icon={<Users size={16} />}
             label="Matches"
             active={location.pathname === "/all-users"}
-          />
+          /> */}
           <NavLink
             to="/all-posts"
             icon={<LayoutGrid size={16} />}
@@ -94,65 +94,77 @@ const Navbar = () => {
         </nav>
 
         {/* Right Section: Auth & Profile */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {/* Desktop Auth Buttons */}
           {!user ? (
             <div className="hidden md:flex gap-3">
               <Link to="/login">
-                <button className="text-sm font-semibold text-white/70 hover:text-white transition-colors">
+                <button className="text-sm font-semibold text-white/70 hover:text-white">
                   Login
                 </button>
               </Link>
               <Link to="/signup">
-                <button className="bg-white text-black text-sm font-bold px-5 py-2 rounded-full hover:bg-gray-200 active:scale-95 transition-all">
+                <button className="bg-white text-black text-sm font-bold px-5 py-2 rounded-full">
                   Get Started
                 </button>
               </Link>
             </div>
           ) : (
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <motion.div
-                  whileTap={{ scale: 0.9 }}
-                  className="cursor-pointer">
-                  <Avatar className="w-9 h-9 border-2 border-indigo-500/20">
-                    <AvatarImage src={user?.profilePic} />
-                    <AvatarFallback className="bg-indigo-600 text-white">
-                      {user?.name?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                </motion.div>
-              </PopoverTrigger>
+            <>
+              {/* 🔔 Mobile Notification Icon */}
+              <Link
+                to="/notifications"
+                className="md:hidden text-white p-2 hover:bg-white/5 rounded-full">
+                <Bell size={24} />
+              </Link>
 
-              <PopoverContent className="w-64 p-3 bg-[#1c1c1e] text-white rounded-[1.5rem] shadow-2xl border border-white/10 mt-3 animate-in fade-in slide-in-from-top-2">
-                <div className="flex items-center gap-3 p-2 border-b border-white/5 mb-2">
-                  <Avatar className="w-10 h-10">
-                    <AvatarImage src={user?.profilePic} />
-                  </Avatar>
-                  <div className="overflow-hidden">
-                    <p className="font-bold text-sm truncate">{user?.name}</p>
-                    <p className="text-[10px] text-gray-400 truncate">
-                      {user?.email}
-                    </p>
+              {/* 👤 Profile Avatar + Popover (Mobile + Desktop) */}
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <motion.div
+                    whileTap={{ scale: 0.9 }}
+                    className="cursor-pointer">
+                    <Avatar className="w-9 h-9 border-2 border-indigo-500/20">
+                      <AvatarImage src={user?.profilePic} />
+                      <AvatarFallback className="bg-indigo-600 text-white">
+                        {user?.name?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                  </motion.div>
+                </PopoverTrigger>
+
+                <PopoverContent className="w-64 p-3 bg-[#1c1c1e] text-white rounded-[1.5rem] shadow-2xl border border-white/10 mt-3">
+                  <div className="flex items-center gap-3 p-2 border-b border-white/5 mb-2">
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage src={user?.profilePic} />
+                    </Avatar>
+                    <div className="overflow-hidden">
+                      <p className="font-bold text-sm truncate">{user?.name}</p>
+                      <p className="text-[10px] text-gray-400 truncate">
+                        {user?.email}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-1">
-                  <PopoverItem
-                    to="/profile"
-                    icon={<User2 size={16} />}
-                    label="View Profile"
-                    onClick={() => setOpen(false)}
-                  />
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-400/10 rounded-xl transition-colors">
-                    <LogOut size={16} /> Logout
-                  </button>
-                </div>
-              </PopoverContent>
-            </Popover>
+
+                  <div className="space-y-1">
+                    <PopoverItem
+                      to="/profile"
+                      icon={<User2 size={16} />}
+                      label="View Profile"
+                      onClick={() => setOpen(false)}
+                    />
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-400/10 rounded-xl">
+                      <LogOut size={16} /> Logout
+                    </button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </>
           )}
 
-          {/* Mobile Menu Trigger */}
+          {/* 🍔 Mobile Menu Button */}
           <button
             className="md:hidden text-white p-2 hover:bg-white/5 rounded-full"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -171,7 +183,7 @@ const Navbar = () => {
             className="absolute top-[60px] left-0 w-full h-screen bg-black/95 backdrop-blur-2xl p-6 md:hidden">
             <div className="flex flex-col gap-6">
               <MobileLink to="/" label="Home" icon={<Home />} />
-              <MobileLink to="/all-users" label="Find Match" icon={<Users />} />
+
               <MobileLink
                 to="/all-posts"
                 label="Explore Posts"
