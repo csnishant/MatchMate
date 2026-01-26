@@ -7,9 +7,13 @@ import SearchFilter from "@/components/SearchFilter";
 import { useSearchFilter } from "@/hooks/useSearchFilter";
 import toast from "react-hot-toast";
 import { LayoutGrid, SlidersHorizontal, Loader2, Sparkles } from "lucide-react";
-import PostCard from "../Post/PostCard";
+
+import { useSelector } from "react-redux";
+import PostCard from "@/components/Post/PostCard";
 
 export default function ExplorePage() {
+  // Redux se user nikalna
+  const { user } = useSelector((state) => state.auth);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -28,34 +32,48 @@ export default function ExplorePage() {
   const [visiblePosts, setVisiblePosts] = useState(10);
   const postsRef = useRef(null);
 
+  // 1. CHECK AUTHENTICATION: Agar user nahi hai to Login par bheje
+  useEffect(() => {
+    if (!user) {
+      toast.error("Please login to access Explore page");
+      navigate("/login"); // Yahan apna login path check karlein
+    }
+  }, [user, navigate]);
+
+  // 2. FETCH DATA: Sirf tabhi fetch kare jab user logged in ho
   useEffect(() => {
     const fetchData = async () => {
+      if (!user) return; // Guard clause
+
       setLoading(true);
       try {
-        const [postsRes, reqRes] = await Promise.all([
-          axios.get(`${POST_API_END_POINT}/all-posts`, {
-            withCredentials: true, // ✅ yahan hona chahiye
-          }),
-        ]);
+        const postsRes = await axios.get(`${POST_API_END_POINT}/all-posts`, {
+          withCredentials: true,
+        });
 
-        setPosts(postsRes.data.posts);
+        if (postsRes.data.success) {
+          setPosts(postsRes.data.posts);
+        }
       } catch (err) {
         console.error("Data Fetching Error:", err);
+        toast.error("Failed to fetch posts");
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [user]);
 
+  // Sync Search Input with URL
   useEffect(() => {
     const query = new URLSearchParams(location.search);
     if (searchInput) query.set("search", searchInput);
     else query.delete("search");
     navigate({ search: query.toString() }, { replace: true });
-  }, [searchInput]);
+  }, [searchInput, navigate, location.search]);
 
+  // Filtering Logic
   const filteredPosts = useSearchFilter(posts, searchInput, [
     "city",
     "area",
@@ -76,9 +94,12 @@ export default function ExplorePage() {
       return genderMatch && uniMatch && hasRoomMatch;
     });
 
+  // Agar user nahi hai, to component render hi na kare (Redirect handle ho raha hai)
+  if (!user) return null;
+
   return (
     <div className="bg-black min-h-screen text-white pb-32">
-      {/* 1. iOS STYLE TOP HEADER & FILTERS */}
+      {/* HEADER SECTION */}
       <header className="sticky top-0 z-40 bg-black/60 backdrop-blur-2xl border-b border-white/5 pt-12 pb-6 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-end justify-between mb-8">
@@ -124,7 +145,7 @@ export default function ExplorePage() {
         </div>
       </header>
 
-      {/* 2. POSTS GRID (Masonry Feel) */}
+      {/* MAIN CONTENT */}
       <main className="max-w-7xl mx-auto px-6 mt-10" ref={postsRef}>
         <div className="flex items-center gap-2 text-gray-500 mb-6 px-2">
           <LayoutGrid size={16} />
@@ -171,7 +192,7 @@ export default function ExplorePage() {
               </div>
             )}
 
-            {/* 3. LOAD MORE (iOS Button Style) */}
+            {/* Load More Button */}
             {visiblePosts < finalFilteredPosts.length && (
               <div className="flex justify-center mt-20">
                 <button

@@ -9,30 +9,42 @@ import {
   Eye,
   EyeOff,
   MapPin,
-  Banknote,
-  Calendar,
   Plus,
   Loader2,
-  ArrowRight,
   ChevronRight,
   Info,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux"; // 1. Redux import karein
 
 const MyPost = () => {
   const navigate = useNavigate();
+  // 2. User state nikalna
+  const { user } = useSelector((state) => state.auth);
+
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch current user's post
+  // 3. Login Check Logic
+  useEffect(() => {
+    if (!user) {
+      toast.error("Please login to see your posts");
+      navigate("/login");
+    }
+  }, [user, navigate]);
+
+  // Fetch current user's post
   const fetchMyPost = async () => {
     try {
       const res = await axios.get(`${POST_API_END_POINT}/my-post`, {
         withCredentials: true,
       });
-      // Backend returns an array, usually user has 1 post in this logic
       setPost(res.data.posts[0] || null);
     } catch (err) {
+      // Agar error unauthorized ka hai (401), to login par bhej sakte hain
+      if (err.response?.status === 401) {
+        navigate("/login");
+      }
       toast.error("Failed to load your post");
     } finally {
       setLoading(false);
@@ -40,10 +52,12 @@ const MyPost = () => {
   };
 
   useEffect(() => {
-    fetchMyPost();
-  }, []);
+    if (user) {
+      fetchMyPost();
+    }
+  }, [user]);
 
-  // ✅ Toggle Visibility (Active/Hidden)
+  // ✅ Toggle Visibility
   const handleToggleStatus = async () => {
     try {
       const res = await axios.put(
@@ -77,6 +91,9 @@ const MyPost = () => {
     }
   };
 
+  // 4. Guard Clause: Agar user nahi hai to white screen/flicker na ho
+  if (!user) return null;
+
   if (loading)
     return (
       <div className="flex h-screen items-center justify-center bg-black">
@@ -87,7 +104,6 @@ const MyPost = () => {
   return (
     <div className="min-h-screen bg-black text-white px-6 py-12 font-sans">
       <div className="max-w-xl mx-auto">
-        {/* --- iOS Header --- */}
         <header className="flex justify-between items-end mb-10">
           <div>
             <p className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
@@ -113,7 +129,7 @@ const MyPost = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="space-y-6">
-              {/* --- 1. Hero Status Card --- */}
+              {/* Hero Status Card */}
               <div className="bg-[#1c1c1e] p-8 rounded-[40px] border border-white/5 relative overflow-hidden shadow-2xl">
                 <div
                   className={`absolute top-0 right-0 px-6 py-2 rounded-bl-[20px] text-[10px] font-black uppercase tracking-widest ${
@@ -161,9 +177,8 @@ const MyPost = () => {
                 </div>
               </div>
 
-              {/* --- 2. iOS List Style Action Menu --- */}
+              {/* Action Menu */}
               <div className="bg-[#1c1c1e] rounded-[35px] overflow-hidden divide-y divide-white/5 border border-white/5 shadow-xl">
-                {/* Toggle Visibility */}
                 <button
                   onClick={handleToggleStatus}
                   className="w-full flex items-center justify-between px-7 py-6 hover:bg-white/[0.02] transition-all group">
@@ -186,7 +201,6 @@ const MyPost = () => {
                   />
                 </button>
 
-                {/* Edit Post (Navigates to CreatePostPage with ID) */}
                 <button
                   onClick={() => navigate(`/create-post/${post._id}`)}
                   className="w-full flex items-center justify-between px-7 py-6 hover:bg-white/[0.02] transition-all group">
@@ -202,7 +216,6 @@ const MyPost = () => {
                   />
                 </button>
 
-                {/* Delete Post */}
                 <button
                   onClick={handleDelete}
                   className="w-full flex items-center justify-between px-7 py-6 hover:bg-red-500/5 transition-all group">
@@ -225,13 +238,12 @@ const MyPost = () => {
                 <Info size={14} className="mt-1" />
                 <p className="text-[11px] font-medium leading-relaxed">
                   Keeping your post "Live" allows others to see your
-                  requirements on the explore page. Hide it if you've already
-                  found a roommate.
+                  requirements.
                 </p>
               </div>
             </motion.div>
           ) : (
-            /* --- Empty State --- */
+            /* Empty State */
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -243,8 +255,7 @@ const MyPost = () => {
                 NO ACTIVE POST
               </h3>
               <p className="text-gray-500 text-sm max-w-[220px] mx-auto font-medium mb-10 leading-relaxed">
-                You haven't posted any requirements yet. Let's find you a
-                roommate!
+                You haven't posted any requirements yet.
               </p>
               <motion.button
                 whileHover={{ scale: 1.05 }}
