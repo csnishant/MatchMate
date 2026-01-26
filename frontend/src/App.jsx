@@ -5,14 +5,14 @@ import { Routes, Route, useLocation } from "react-router-dom";
 
 import Login from "./auth/Login";
 import Signup from "./auth/Signup";
-import Home from "./components/Home";
+import Home from "./pages/Home";
 import Navbar from "./components/Navbar";
-import Profile from "./components/Profile/Profile";
-import Notifications from "./Pages/Notification";
-import ExplorePage from "./Pages/ExplorePage";
-import ViewProfile from "./Pages/ViewProfile";
-import MyPostsPage from "./Pages/MyPost";
-import CreatePostPage from "./Pages/CreatePost";
+import Profile from "./profile/Profile";
+import Notifications from "./pages/Notification";
+import ExplorePage from "./pages/ExplorePage";
+import ViewProfile from "./pages/ViewProfile";
+import MyPostsPage from "./pages/MyPost";
+import CreatePostPage from "./pages/CreatePost";
 
 import { useDispatch } from "react-redux";
 import { setUser } from "./redux/authSlice";

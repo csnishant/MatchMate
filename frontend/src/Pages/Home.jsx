@@ -8,9 +8,12 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Hero from "@/components/Hero";
-import SearchBar from "./SearchBar";
-import Footer from "./Footer";
-import Community from "./Community";
+
+
+
+import SearchBar from "@/components/SearchBar";
+import Footer from "@/components/Footer";
+import Community from "@/components/Community";
 
 
 export default function Home() {
@@ -87,7 +90,7 @@ export default function Home() {
             </button>
           </div>
 
-          <Community />
+          <Community/>
         </div>
       </section>
 
