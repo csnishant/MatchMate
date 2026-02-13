@@ -11,6 +11,8 @@ import {
   Search,
   Info,
   PhoneCall,
+  EyeClosed,
+  EyeIcon,
 } from "lucide-react";
 import axios from "axios";
 
@@ -233,7 +235,7 @@ export default function PostCard({ post, authToken }) {
           <Link
             to={`/user-profile/${post.user._id}`}
             className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 active:scale-95 transition-all">
-            <ChevronRight size={20} />
+            <EyeIcon size={20} />
           </Link>
 
           <button
