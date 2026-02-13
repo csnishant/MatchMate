@@ -1,4 +1,5 @@
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, RotateCcw, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function SearchFilter({
   search,
@@ -13,74 +14,113 @@ export default function SearchFilter({
   setSelectedUniversity,
   universities,
 }) {
+  const selectClass =
+    "appearance-none bg-[#1c1c1e] border border-white/5 px-5 py-3 rounded-2xl text-sm font-medium text-zinc-300 outline-none focus:border-indigo-500/50 transition-all cursor-pointer min-w-[140px]";
+
   return (
-    <>
-      {/* Search & Filter */}
-      <div className="flex flex-wrap items-center gap-4 mb-6">
-        <div className="flex flex-1 items-center gap-2 border border-white/20 bg-white/10 backdrop-blur-md rounded-full px-4 py-2">
+    <div className="w-full max-w-4xl mx-auto mb-10">
+      {/* Search Bar Row */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 group">
+          <Search
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-indigo-500 transition-colors"
+            size={18}
+          />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search City, Area, Name..."
-            className="flex-1 bg-transparent outline-none placeholder-white/70 text-white"
+            placeholder="Search by city, area, or name..."
+            className="w-full bg-[#1c1c1e] border border-white/5 rounded-[22px] pl-12 pr-4 py-4 text-sm text-white outline-none focus:border-indigo-500/30 focus:bg-[#242427] transition-all placeholder:text-zinc-600"
           />
-          <Search className="text-white/70" />
         </div>
 
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 border border-white/20 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-white hover:bg-white/20 transition">
-          <Filter size={18} />
-          Filters
+          className={`p-4 rounded-[22px] border transition-all flex items-center gap-2 ${
+            showFilters
+              ? "bg-indigo-500 border-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+              : "bg-[#1c1c1e] border-white/5 text-zinc-400 hover:border-white/10"
+          }`}>
+          <Filter size={20} />
+          <span className="hidden md:block text-xs font-black uppercase tracking-widest">
+            Filters
+          </span>
         </button>
       </div>
 
-      {/* Dropdown Filters */}
-      {showFilters && (
-        <div className="flex gap-4 flex-wrap mb-6">
-          <select
-            value={filterHasRoom}
-            onChange={(e) => setFilterHasRoom(e.target.value)}
-            className="bg-white/10 border border-white/30 px-4 py-2 rounded-xl backdrop-blur-md text-white">
-            <option value="">All Rooms</option>
-            <option value="yes">Has Room</option>
-            <option value="no">No Room</option>
-          </select>
+      {/* Animated Dropdown Filters */}
+      <AnimatePresence>
+        {showFilters && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="mt-4 p-6 bg-[#09090b] border border-white/5 rounded-[32px] flex flex-wrap gap-4 items-center">
+            {/* Room Filter */}
+            <div className="relative flex flex-col gap-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
+                Status
+              </label>
+              <select
+                value={filterHasRoom}
+                onChange={(e) => setFilterHasRoom(e.target.value)}
+                className={selectClass}>
+                <option value="">All Types</option>
+                <option value="yes">Has Room</option>
+                <option value="no">Needs Room</option>
+              </select>
+            </div>
 
-          <select
-            value={selectedGender}
-            onChange={(e) => setSelectedGender(e.target.value)}
-            className="bg-white/10 border border-white/30 px-4 py-2 rounded-xl backdrop-blur-md text-white">
-            <option value="">All Genders</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-          </select>
+            {/* Gender Filter */}
+            <div className="relative flex flex-col gap-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
+                Gender
+              </label>
+              <select
+                value={selectedGender}
+                onChange={(e) => setSelectedGender(e.target.value)}
+                className={selectClass}>
+                <option value="">Any Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
 
-          <select
-            value={selectedUniversity}
-            onChange={(e) => setSelectedUniversity(e.target.value)}
-            className="bg-white/10 border border-white/30 px-4 py-2 rounded-xl backdrop-blur-md text-white">
-            <option value="">All Universities</option>
-            {universities.map((uni) => (
-              <option key={uni} value={uni}>
-                {uni}
-              </option>
-            ))}
-          </select>
+            {/* University Filter */}
+            <div className="relative flex flex-col gap-1.5 flex-1 min-w-[200px]">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
+                University
+              </label>
+              <select
+                value={selectedUniversity}
+                onChange={(e) => setSelectedUniversity(e.target.value)}
+                className={selectClass}>
+                <option value="">All Universities</option>
+                {universities.map((uni) => (
+                  <option key={uni} value={uni}>
+                    {uni}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <button
-            onClick={() => {
-              setSelectedGender("");
-              setSelectedUniversity("");
-              setSearch("");
-            }}
-            className="border border-white/30 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white">
-            Reset
-          </button>
-        </div>
-      )}
-    </>
+            {/* Reset Button */}
+            <button
+              onClick={() => {
+                setSelectedGender("");
+                setSelectedUniversity("");
+                setFilterHasRoom("");
+                setSearch("");
+              }}
+              className="mt-5 p-3 rounded-2xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center gap-2"
+              title="Reset All">
+              <RotateCcw size={18} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

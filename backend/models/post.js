@@ -21,8 +21,8 @@ const PostSchema = new mongoose.Schema({
   // 👥 Looking for
   lookingForGender: {
     type: String,
-    enum: ["Male", "Female", "Any"],
-    default: "Any",
+    enum: ["male", "female", "any"],
+    default: "any",
   },
 
   // 📅 Time Duration

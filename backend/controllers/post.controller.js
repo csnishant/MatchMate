@@ -28,6 +28,9 @@ export const createPost = async (req, res) => {
       roomDescription,
       description,
     } = req.body;
+    const normalizedGender = lookingForGender
+      ? lookingForGender.toLowerCase()
+      : "any";
 
     if (
       !city ||
@@ -207,8 +210,6 @@ export const togglePostStatus = async (req, res) => {
 };
 export const getSinglePost = async (req, res) => {
   try {
-  
-
     const post = await Post.findById(req.params.id);
 
     if (!post) {

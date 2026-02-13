@@ -179,9 +179,9 @@ export default function CreatePostPage() {
                   value={formData.lookingForGender}
                   onChange={handleChange}
                   className={`${inputStyle} appearance-none`}>
-                  <option value="ANY">Any Gender</option>
-                  <option value="MALE">Male</option>
-                  <option value="FEMALE">Female</option>
+                  <option value="any">Any Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
                 </select>
               </div>
               <div>
