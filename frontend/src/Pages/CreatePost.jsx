@@ -1,62 +1,64 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { POST_API_END_POINT } from "@/utils/constant";
 import { useNavigate, useParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ChevronLeft,
+  Loader2,
+  MapPin,
+  Calendar,
+  IndianRupee,
+  Info,
+} from "lucide-react";
 import toast from "react-hot-toast";
+import { POST_API_END_POINT } from "@/utils/constant";
+
+const initialFormState = {
+  city: "",
+  area: "",
+  lookingForGender: "ANY",
+  fromDate: "",
+  toDate: "",
+  minStayDuration: "",
+  budgetPerPerson: "",
+  hasRoom: false,
+  roomImages: [],
+  totalRoomRent: "",
+  rentPerRoommate: "",
+  description: "",
+};
 
 export default function CreatePostPage() {
   const navigate = useNavigate();
-  const { id } = useParams(); // URL se ID uthayega (e.g. /edit-post/123)
+  const { id } = useParams();
   const isEditMode = Boolean(id);
 
   const [loading, setLoading] = useState(isEditMode);
   const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState(initialFormState);
 
-  const [formData, setFormData] = useState({
-    city: "",
-    area: "",
-    lookingForGender: "",
-    fromDate: "",
-    toDate: "",
-    minStayDuration: "",
-    budgetPerPerson: "",
-    hasRoom: false,
-    roomImages: "",
-    totalRoomRent: "",
-    rentPerRoommate: "",
-    roomDescription: "",
-    description: "",
-  });
-
-  
-  // --- EDIT MODE: Fetch Existing Post Data ---
   useEffect(() => {
-    if (!id) return; // Agar ID nahi hai, to fetch mat karo
-
+    if (!id) return;
     const fetchPost = async () => {
       try {
         const res = await axios.get(`${POST_API_END_POINT}/get/${id}`, {
           withCredentials: true,
         });
-
-        const post = res.data.post;
-
-        // Dates ko input type="date" ke format me convert karo
+        const post = res?.data?.post;
+        if (!post) throw new Error("Invalid response");
         setFormData({
           ...post,
-          fromDate: post.fromDate ? post.fromDate.split("T")[0] : "",
-          toDate: post.toDate ? post.toDate.split("T")[0] : "",
+          fromDate: post.fromDate?.slice(0, 10) || "",
+          toDate: post.toDate?.slice(0, 10) || "",
+          hasRoom: Boolean(post.hasRoom),
         });
       } catch (err) {
-        toast.error("Failed to load post data");
-        navigate("/my-post"); // Agar fetch fail ho to redirect
+        toast.error("Unable to load post");
+        navigate("/my-post");
       } finally {
         setLoading(false);
       }
     };
-
     fetchPost();
   }, [id, navigate]);
 
@@ -70,22 +72,34 @@ export default function CreatePostPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.toDate < formData.fromDate) {
+      toast.error("To Date cannot be before From Date");
+      return;
+    }
+    const payload = {
+      ...formData,
+      budgetPerPerson: Number(formData.budgetPerPerson),
+      minStayDuration: Number(formData.minStayDuration),
+      totalRoomRent: Number(formData.totalRoomRent),
+      rentPerRoommate: Number(formData.rentPerRoommate),
+    };
+    if (!payload.hasRoom) {
+      payload.totalRoomRent = null;
+      payload.rentPerRoommate = null;
+      payload.roomImages = [];
+    }
+
     setSubmitting(true);
     try {
-      if (isEditMode) {
-        await axios.put(`${POST_API_END_POINT}/update/${id}`, formData, {
-          withCredentials: true,
-        });
-        toast.success("Post updated successfully! ✨");
-      } else {
-        await axios.post(`${POST_API_END_POINT}/create`, formData, {
-          withCredentials: true,
-        });
-        toast.success("Vibe posted successfully! 🚀");
-      }
+      const method = isEditMode ? "put" : "post";
+      const url = isEditMode
+        ? `${POST_API_END_POINT}/update/${id}`
+        : `${POST_API_END_POINT}/create`;
+      await axios[method](url, payload, { withCredentials: true });
+      toast.success(isEditMode ? "Post updated!" : "Post created!");
       navigate("/my-post");
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Something went wrong");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Something went wrong");
     } finally {
       setSubmitting(false);
     }
@@ -98,221 +112,210 @@ export default function CreatePostPage() {
       </div>
     );
 
+  // Common Input Style
+  const inputStyle =
+    "w-full bg-[#1c1c1e] border border-white/10 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-gray-600";
+  const labelStyle =
+    "text-[10px] font-black uppercase tracking-[0.1em] text-gray-500 ml-1 mb-2 block";
+
   return (
-    <div className="min-h-screen bg-black text-white px-6 py-10">
-      <div className="max-w-2xl mx-auto">
-        {/* Top Navigation */}
-        <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen bg-black text-white px-6 py-12 font-sans">
+      <div className="max-w-xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-12">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition">
-            <ChevronLeft size={24} />
+            className="p-3 bg-white/5 rounded-2xl hover:bg-white/10 border border-white/5 transition-colors">
+            <ChevronLeft size={20} />
           </button>
-          <h1 className="text-2xl font-black italic tracking-tighter uppercase">
-            {isEditMode ? "Modify Post" : "Create Post"}
+          <h1 className="text-3xl font-black italic tracking-tighter uppercase">
+            {isEditMode ? "Modify Vibe" : "New Post"}
           </h1>
-          <div className="w-10"></div>
+          <div className="w-12" />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Section 1: Location & Basics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1">
-                City
-              </label>
-              <input
-                type="text"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                placeholder="e.g. Mumbai"
-                required
-                className="bg-[#1c1c1e] p-4 rounded-2xl outline-none border border-white/5 focus:border-indigo-500/50 transition"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1">
-                Area
-              </label>
-              <input
-                type="text"
-                name="area"
-                value={formData.area}
-                onChange={handleChange}
-                placeholder="e.g. Bandra"
-                required
-                className="bg-[#1c1c1e] p-4 rounded-2xl outline-none border border-white/5 focus:border-indigo-500/50 transition"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-gray-500 uppercase ml-1">
-              Looking For (Gender)
-            </label>
-            <input
-              type="text"
-              name="lookingForGender"
-              value={formData.lookingForGender}
-              onChange={handleChange}
-              placeholder="Male / Female / Any"
-              className="bg-[#1c1c1e] p-4 rounded-2xl outline-none border border-white/5 focus:border-indigo-500/50 transition"
-            />
-          </div>
-
-          {/* Section 2: Dates & Budget */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1">
-                From Date
-              </label>
-              <input
-                type="date"
-                name="fromDate"
-                value={formData.fromDate}
-                onChange={handleChange}
-                required
-                className="bg-[#1c1c1e] p-4 rounded-2xl outline-none border border-white/5 focus:border-indigo-500/50 transition text-gray-300"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1">
-                To Date
-              </label>
-              <input
-                type="date"
-                name="toDate"
-                value={formData.toDate}
-                onChange={handleChange}
-                required
-                className="bg-[#1c1c1e] p-4 rounded-2xl outline-none border border-white/5 focus:border-indigo-500/50 transition text-gray-300"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1">
-                Budget Per Person (₹)
-              </label>
-              <input
-                type="number"
-                name="budgetPerPerson"
-                value={formData.budgetPerPerson}
-                onChange={handleChange}
-                required
-                placeholder="5000"
-                className="bg-[#1c1c1e] p-4 rounded-2xl outline-none border border-white/5 focus:border-indigo-500/50 transition"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1">
-                Min Stay (Days)
-              </label>
-              <input
-                type="number"
-                name="minStayDuration"
-                value={formData.minStayDuration}
-                onChange={handleChange}
-                placeholder="30"
-                className="bg-[#1c1c1e] p-4 rounded-2xl outline-none border border-white/5 focus:border-indigo-500/50 transition"
-              />
-            </div>
-          </div>
-
-          {/* Section 3: Room Toggle */}
-          <div className="bg-[#1c1c1e] p-5 rounded-2xl border border-white/5 flex items-center justify-between">
-            <div>
-              <p className="font-bold text-sm">Already have a room?</p>
-              <p className="text-[10px] text-gray-500 uppercase">
-                Toggle if you are looking for a roommate for your place
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              name="hasRoom"
-              checked={formData.hasRoom}
-              onChange={handleChange}
-              className="w-6 h-6 rounded-full accent-indigo-500 cursor-pointer"
-            />
-          </div>
-
-          {/* Section 4: Conditional Room Info */}
-          {formData.hasRoom && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-4 bg-indigo-500/5 p-6 rounded-[30px] border border-indigo-500/10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold text-indigo-400 uppercase">
-                    Total Room Rent
-                  </label>
-                  <input
-                    type="number"
-                    name="totalRoomRent"
-                    value={formData.totalRoomRent}
-                    onChange={handleChange}
-                    className="bg-black/40 p-4 rounded-2xl outline-none border border-white/5"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold text-indigo-400 uppercase">
-                    Rent Per Roommate
-                  </label>
-                  <input
-                    type="number"
-                    name="rentPerRoommate"
-                    value={formData.rentPerRoommate}
-                    onChange={handleChange}
-                    className="bg-black/40 p-4 rounded-2xl outline-none border border-white/5"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-indigo-400 uppercase">
-                  Room Images URL
-                </label>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Section: Location */}
+          <section className="space-y-4">
+            <h2 className="flex items-center gap-2 text-indigo-400 font-bold text-xs uppercase tracking-widest px-1">
+              <MapPin size={14} /> Location Details
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelStyle}>City</label>
                 <input
-                  type="text"
-                  name="roomImages"
-                  value={formData.roomImages}
+                  name="city"
+                  value={formData.city}
                   onChange={handleChange}
-                  placeholder="https://..."
-                  className="bg-black/40 p-4 rounded-2xl outline-none border border-white/5"
+                  placeholder="e.g. Mumbai"
+                  required
+                  className={inputStyle}
                 />
               </div>
-            </motion.div>
-          )}
+              <div>
+                <label className={labelStyle}>Area</label>
+                <input
+                  name="area"
+                  value={formData.area}
+                  onChange={handleChange}
+                  placeholder="e.g. Bandra"
+                  required
+                  className={inputStyle}
+                />
+              </div>
+            </div>
+          </section>
 
-          {/* Section 5: General Description */}
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-gray-500 uppercase ml-1">
-              About the Vibe / Requirements
+          {/* Section: Preferences */}
+          <section className="space-y-4">
+            <h2 className="flex items-center gap-2 text-indigo-400 font-bold text-xs uppercase tracking-widest px-1">
+              <Calendar size={14} /> Schedule & Gender
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelStyle}>Looking For</label>
+                <select
+                  name="lookingForGender"
+                  value={formData.lookingForGender}
+                  onChange={handleChange}
+                  className={`${inputStyle} appearance-none`}>
+                  <option value="ANY">Any Gender</option>
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelStyle}>Min Stay (Days)</label>
+                <input
+                  type="number"
+                  name="minStayDuration"
+                  value={formData.minStayDuration}
+                  onChange={handleChange}
+                  placeholder="30"
+                  className={inputStyle}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelStyle}>Available From</label>
+                <input
+                  type="date"
+                  name="fromDate"
+                  value={formData.fromDate}
+                  onChange={handleChange}
+                  required
+                  className={inputStyle}
+                />
+              </div>
+              <div>
+                <label className={labelStyle}>Available To</label>
+                <input
+                  type="date"
+                  name="toDate"
+                  value={formData.toDate}
+                  onChange={handleChange}
+                  required
+                  className={inputStyle}
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Section: Money */}
+          <section className="space-y-4">
+            <h2 className="flex items-center gap-2 text-indigo-400 font-bold text-xs uppercase tracking-widest px-1">
+              <IndianRupee size={14} /> Budget
+            </h2>
+            <input
+              type="number"
+              name="budgetPerPerson"
+              value={formData.budgetPerPerson}
+              onChange={handleChange}
+              placeholder="Max budget per person"
+              required
+              className={inputStyle}
+            />
+          </section>
+
+          {/* Section: Room Details */}
+          <section className="space-y-4 pt-4 border-t border-white/5">
+            <label className="flex items-center justify-between p-6 bg-[#1c1c1e] rounded-[28px] border border-white/5 cursor-pointer hover:border-white/10 transition-all">
+              <div className="flex flex-col">
+                <span className="font-bold text-sm">Property Status</span>
+                <span className="text-[10px] text-gray-500 uppercase font-black">
+                  I already have a room
+                </span>
+              </div>
+              <input
+                type="checkbox"
+                name="hasRoom"
+                checked={formData.hasRoom}
+                onChange={handleChange}
+                className="w-6 h-6 rounded-full accent-indigo-500"
+              />
             </label>
+
+            <AnimatePresence>
+              {formData.hasRoom && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="grid grid-cols-2 gap-4 p-4 bg-indigo-500/5 rounded-[28px] border border-indigo-500/10">
+                  <div>
+                    <label className={labelStyle}>Total Rent</label>
+                    <input
+                      type="number"
+                      name="totalRoomRent"
+                      value={formData.totalRoomRent}
+                      onChange={handleChange}
+                      placeholder="₹ 40,000"
+                      className={inputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelStyle}>Per Person</label>
+                    <input
+                      type="number"
+                      name="rentPerRoommate"
+                      value={formData.rentPerRoommate}
+                      onChange={handleChange}
+                      placeholder="₹ 20,000"
+                      className={inputStyle}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </section>
+
+          {/* Section: About */}
+          <section className="space-y-4">
+            <h2 className="flex items-center gap-2 text-indigo-400 font-bold text-xs uppercase tracking-widest px-1">
+              <Info size={14} /> Description
+            </h2>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               rows="4"
-              placeholder="Tell us about yourself and what kind of roommate you want..."
-              className="bg-[#1c1c1e] p-4 rounded-2xl outline-none border border-white/5 focus:border-indigo-500/50 transition resize-none"
+              placeholder="Tell us about your lifestyle, work, or room details..."
+              className={`${inputStyle} resize-none`}
             />
-          </div>
+          </section>
 
           {/* Submit Button */}
           <motion.button
             whileTap={{ scale: 0.98 }}
             disabled={submitting}
-            type="submit"
-            className="w-full bg-white text-black h-16 rounded-2xl font-black text-lg shadow-xl shadow-white/5 hover:bg-gray-200 transition disabled:opacity-50">
+            className="w-full h-16 bg-white text-black font-black text-lg rounded-[24px] shadow-xl shadow-white/5 flex items-center justify-center gap-3 disabled:opacity-50">
             {submitting ? (
-              <Loader2 className="animate-spin mx-auto" />
+              <Loader2 className="animate-spin" />
             ) : isEditMode ? (
               "SAVE CHANGES"
             ) : (
-              "POST MY VIBE"
+              "PUBLISH POST"
             )}
           </motion.button>
         </form>
