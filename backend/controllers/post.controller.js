@@ -1,79 +1,59 @@
-import Post from "../models/post.js";
+import Post from "../models/Post.js"; // make sure path is correct
 
 export const createPost = async (req, res) => {
   try {
+    console.log("Payload:", req.body);
+    console.log("UserId:", req.userId);
+
     const userId = req.userId;
-
-    // 🔴 CHECK: already post exists?
-    const existingPost = await Post.findOne({ user: userId });
-
-    if (existingPost) {
-      return res.status(400).json({
-        message: "You can create only one post. Please edit or delete it.",
-      });
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized: userId missing" });
     }
 
     const {
       city,
       area,
-      lookingForGender,
-      fromDate,
-      toDate,
-      minStayDuration,
       budgetPerPerson,
-      hasRoom,
-      roomImages,
       totalRoomRent,
-      rentPerRoommate,
-      roomDescription,
+      hasRoom,
       description,
+      lookingForGender,
     } = req.body;
-    const normalizedGender = lookingForGender
-      ? lookingForGender.toLowerCase()
-      : "any";
 
-    if (
-      !city ||
-      !area ||
-      !fromDate ||
-      !toDate ||
-      !minStayDuration ||
-      !budgetPerPerson
-    ) {
-      return res.status(400).json({ message: "Required fields are missing" });
+    if (!city || !area || !budgetPerPerson) {
+      return res.status(400).json({ message: "Required fields missing" });
+    }
+
+    // Check existing post
+    const existingPost = await Post.findOne({ user: userId });
+    if (existingPost) {
+      return res.status(400).json({ message: "Only one post allowed" });
     }
 
     const newPost = new Post({
       user: userId,
       city,
       area,
-      lookingForGender,
-      fromDate,
-      toDate,
-      minStayDuration,
-      budgetPerPerson,
-      hasRoom,
-      roomImages,
-      totalRoomRent,
-      rentPerRoommate,
-      roomDescription,
-      description,
+      lookingForGender: lookingForGender || "any",
+      budgetPerPerson: Number(budgetPerPerson),
+      hasRoom: hasRoom || false,
+      totalRoomRent: hasRoom ? Number(totalRoomRent) : null,
+      description: description || "",
       isActive: true,
     });
 
+    console.log("Saving new post:", newPost);
     const savedPost = await newPost.save();
+    console.log("Post saved:", savedPost);
 
-    res.status(201).json({
-      success: true,
-      message: "Roommate post created successfully",
-      post: savedPost,
-    });
-  } catch (error) {
-    console.error("Create Post Error:", error);
-    res.status(500).json({ message: "Failed to create post" });
+    res.status(201).json({ success: true, post: savedPost });
+  } catch (err) {
+    console.error("Error creating post:", err);
+    res
+      .status(500)
+      .json({ message: "Failed to create post", error: err.message });
   }
 };
-
 export const getAllPosts = async (req, res) => {
   try {
     const userId = req.userId; // ✅ current logged-in user

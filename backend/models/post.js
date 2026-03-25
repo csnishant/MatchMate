@@ -1,14 +1,14 @@
 import mongoose from "mongoose";
 
 const PostSchema = new mongoose.Schema({
-  // 🔗 Linked to User who created the post
+  // 🔗 Linked to User
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
 
-  // 📍 Location Details
+  // 📍 Location
   city: {
     type: String,
     required: true,
@@ -18,79 +18,39 @@ const PostSchema = new mongoose.Schema({
     required: true,
   },
 
-  // 👥 Looking for
+  // 👥 Gender preference
   lookingForGender: {
     type: String,
     enum: ["male", "female", "any"],
     default: "any",
   },
 
-  // 📅 Time Duration
-  fromDate: {
-    type: Date,
-    required: true,
-  },
-  toDate: {
-    type: Date,
-    required: true,
-  },
-
-  // ⏳ Minimum Stay (in months)
-  minStayDuration: {
-    type: Number, // e.g., 2 (means 2 months)
-    required: true,
-  },
-
-  // 💸 Budget Details
+  // 💸 Budget
   budgetPerPerson: {
     type: Number,
     required: true,
   },
 
-  // 🏠 Room Details (if user already has a room)
+  // 🏠 Room info
   hasRoom: {
     type: Boolean,
     default: false,
   },
-  roomImages: [
-    {
-      type: String, // Cloud image URL
-    },
-  ],
   totalRoomRent: {
-    type: Number, // Full rent of the room/flat
-  },
-  rentPerRoommate: {
-    type: Number, // How much each roommate will pay
-  },
-  roomDescription: {
-    type: String,
+    type: Number,
   },
 
-  // 👥 Multi-User Group Support
-  groupMembers: [
-    {
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-      joinedAt: {
-        type: Date,
-        default: Date.now,
-      },
-    },
-  ],
-
-  // 📝 Additional Notes
+  // 📝 Description
   description: {
     type: String,
   },
+
+  // 🔴 Post status
   isActive: {
     type: Boolean,
     default: true,
   },
 
-  // 🕒 Timestamps
   createdAt: {
     type: Date,
     default: Date.now,
