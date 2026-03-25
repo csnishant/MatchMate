@@ -1,25 +1,26 @@
-import { Search, Filter, RotateCcw, ChevronDown } from "lucide-react";
+import { Search, RotateCcw, Filter } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function SearchFilter({
-  search,
-  setSearch,
+  filters,
+  setFilters,
   showFilters,
-  setShowFilters,
-  filterHasRoom,
-  setFilterHasRoom,
-  selectedGender,
-  setSelectedGender,
-  selectedUniversity,
-  setSelectedUniversity,
   universities,
 }) {
   const selectClass =
     "appearance-none bg-[#1c1c1e] border border-white/5 px-5 py-3 rounded-2xl text-sm font-medium text-zinc-300 outline-none focus:border-indigo-500/50 transition-all cursor-pointer min-w-[140px]";
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const resetFilters = () => {
+    setFilters({ search: "", gender: "", university: "", hasRoom: "" });
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto mb-10">
-      {/* Search Bar Row */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1 group">
           <Search
@@ -28,28 +29,15 @@ export default function SearchFilter({
           />
           <input
             type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            name="search"
+            value={filters.search}
+            onChange={handleChange}
             placeholder="Search by city, area, or name..."
-            className="w-full bg-[#1c1c1e] border border-white/5 rounded-[22px] pl-12 pr-4 py-4 text-sm text-white outline-none focus:border-indigo-500/30 focus:bg-[#242427] transition-all placeholder:text-zinc-600"
+            className="w-full bg-[#1c1c1e] border border-white/5 rounded-[22px] pl-12 pr-4 py-4 text-sm text-white outline-none focus:border-indigo-500/30 focus:bg-[#242427] transition-all"
           />
         </div>
-
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className={`p-4 rounded-[22px] border transition-all flex items-center gap-2 ${
-            showFilters
-              ? "bg-indigo-500 border-indigo-500 text-white shadow-lg shadow-indigo-500/20"
-              : "bg-[#1c1c1e] border-white/5 text-zinc-400 hover:border-white/10"
-          }`}>
-          <Filter size={20} />
-          <span className="hidden md:block text-xs font-black uppercase tracking-widest">
-            Filters
-          </span>
-        </button>
       </div>
 
-      {/* Animated Dropdown Filters */}
       <AnimatePresence>
         {showFilters && (
           <motion.div
@@ -57,46 +45,36 @@ export default function SearchFilter({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             className="mt-4 p-6 bg-[#09090b] border border-white/5 rounded-[32px] flex flex-wrap gap-4 items-center">
-            {/* Room Filter */}
-            <div className="relative flex flex-col gap-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
-                Status
-              </label>
+            <FilterItem label="Status">
               <select
-                value={filterHasRoom}
-                onChange={(e) => setFilterHasRoom(e.target.value)}
+                name="hasRoom"
+                value={filters.hasRoom}
+                onChange={handleChange}
                 className={selectClass}>
                 <option value="">All Types</option>
                 <option value="yes">Has Room</option>
                 <option value="no">Needs Room</option>
               </select>
-            </div>
+            </FilterItem>
 
-            {/* Gender Filter */}
-            <div className="relative flex flex-col gap-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
-                Gender
-              </label>
+            <FilterItem label="Gender">
               <select
-                value={selectedGender}
-                onChange={(e) => setSelectedGender(e.target.value)}
+                name="gender"
+                value={filters.gender}
+                onChange={handleChange}
                 className={selectClass}>
                 <option value="">Any Gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
-                <option value="Other">Other</option>
               </select>
-            </div>
+            </FilterItem>
 
-            {/* University Filter */}
-            <div className="relative flex flex-col gap-1.5 flex-1 min-w-[200px]">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
-                University
-              </label>
+            <FilterItem label="University" className="flex-1 min-w-[200px]">
               <select
-                value={selectedUniversity}
-                onChange={(e) => setSelectedUniversity(e.target.value)}
-                className={selectClass}>
+                name="university"
+                value={filters.university}
+                onChange={handleChange}
+                className={selectClass + " w-full"}>
                 <option value="">All Universities</option>
                 {universities.map((uni) => (
                   <option key={uni} value={uni}>
@@ -104,18 +82,11 @@ export default function SearchFilter({
                   </option>
                 ))}
               </select>
-            </div>
+            </FilterItem>
 
-            {/* Reset Button */}
             <button
-              onClick={() => {
-                setSelectedGender("");
-                setSelectedUniversity("");
-                setFilterHasRoom("");
-                setSearch("");
-              }}
-              className="mt-5 p-3 rounded-2xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center gap-2"
-              title="Reset All">
+              onClick={resetFilters}
+              className="mt-5 p-3 rounded-2xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all">
               <RotateCcw size={18} />
             </button>
           </motion.div>
@@ -124,3 +95,13 @@ export default function SearchFilter({
     </div>
   );
 }
+
+// Small helper to keep JSX clean
+const FilterItem = ({ label, children, className = "" }) => (
+  <div className={`relative flex flex-col gap-1.5 ${className}`}>
+    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
+      {label}
+    </label>
+    {children}
+  </div>
+);

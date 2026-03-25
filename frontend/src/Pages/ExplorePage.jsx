@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -6,100 +6,85 @@ import { POST_API_END_POINT } from "@/utils/constant";
 import SearchFilter from "@/components/SearchFilter";
 import { useSearchFilter } from "@/hooks/useSearchFilter";
 import toast from "react-hot-toast";
-import { LayoutGrid, SlidersHorizontal, Loader2, Sparkles } from "lucide-react";
-
+import { LayoutGrid, Loader2, Sparkles, SlidersHorizontal } from "lucide-react";
 import { useSelector } from "react-redux";
 import PostCard from "@/components/Post/PostCard";
 
 export default function ExplorePage() {
-  // Redux se user nikalna
   const { user } = useSelector((state) => state.auth);
   const location = useLocation();
   const navigate = useNavigate();
 
   const params = new URLSearchParams(location.search);
-  const initialSearch = params.get("search") || "";
-
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const [searchInput, setSearchInput] = useState(initialSearch);
-  const [selectedGender, setSelectedGender] = useState("");
-  const [selectedUniversity, setSelectedUniversity] = useState("");
-  const [filterHasRoom, setFilterHasRoom] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-
   const [visiblePosts, setVisiblePosts] = useState(10);
-  const postsRef = useRef(null);
 
-  // 1. CHECK AUTHENTICATION: Agar user nahi hai to Login par bheje
+  // Filter States
+  const [filters, setFilters] = useState({
+    search: params.get("search") || "",
+    gender: "",
+    university: "",
+    hasRoom: "",
+  });
+
   useEffect(() => {
     if (!user) {
       toast.error("Please login to access Explore page");
-      navigate("/login"); // Yahan apna login path check karlein
+      navigate("/login");
     }
   }, [user, navigate]);
 
-  // 2. FETCH DATA: Sirf tabhi fetch kare jab user logged in ho
   useEffect(() => {
     const fetchData = async () => {
-      if (!user) return; // Guard clause
-
+      if (!user) return;
       setLoading(true);
       try {
-        const postsRes = await axios.get(`${POST_API_END_POINT}/all-posts`, {
+        const { data } = await axios.get(`${POST_API_END_POINT}/all-posts`, {
           withCredentials: true,
         });
-
-        if (postsRes.data.success) {
-          setPosts(postsRes.data.posts);
-        }
+        if (data.success) setPosts(data.posts);
       } catch (err) {
-        console.error("Data Fetching Error:", err);
         toast.error("Failed to fetch posts");
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [user]);
 
-  // Sync Search Input with URL
+  // Sync URL with Search Input
   useEffect(() => {
     const query = new URLSearchParams(location.search);
-    if (searchInput) query.set("search", searchInput);
+    if (filters.search) query.set("search", filters.search);
     else query.delete("search");
     navigate({ search: query.toString() }, { replace: true });
-  }, [searchInput, navigate, location.search]);
+  }, [filters.search, navigate]);
 
-  // Filtering Logic
-  const filteredPosts = useSearchFilter(posts, searchInput, [
+  // Combined Filtering Logic
+  const textFilteredPosts = useSearchFilter(posts, filters.search, [
     "city",
     "area",
     "user.name",
   ]);
 
-  const finalFilteredPosts = filteredPosts
-    .filter((post) => post.user)
-    .filter((post) => {
-      const genderMatch = selectedGender
-        ? post.lookingForGender === selectedGender
-        : true;
-      const uniMatch = selectedUniversity
-        ? post.user?.university === selectedUniversity
-        : true;
-      const hasRoomMatch =
-        filterHasRoom === "yes" ? post.hasRoom === true : true;
-      return genderMatch && uniMatch && hasRoomMatch;
-    });
+  const finalFilteredPosts = textFilteredPosts.filter((post) => {
+    if (!post.user) return false;
+    const genderMatch =
+      !filters.gender || post.lookingForGender === filters.gender;
+    const uniMatch =
+      !filters.university || post.user?.university === filters.university;
+    const roomMatch =
+      !filters.hasRoom ||
+      (filters.hasRoom === "yes" ? post.hasRoom : !post.hasRoom);
+    return genderMatch && uniMatch && roomMatch;
+  });
 
-  // Agar user nahi hai, to component render hi na kare (Redirect handle ho raha hai)
   if (!user) return null;
 
   return (
     <div className="bg-black min-h-screen text-white pb-32">
-      {/* HEADER SECTION */}
       <header className="sticky top-0 z-40 bg-black/60 backdrop-blur-2xl border-b border-white/5 pt-12 pb-6 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-end justify-between mb-8">
@@ -112,10 +97,9 @@ export default function ExplorePage() {
               </h1>
             </div>
 
-            <motion.button
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`p-3 rounded-2xl flex items-center gap-2 transition-all border ${
+              className={`p-3 rounded-2xl flex items-center gap-2 border transition-all ${
                 showFilters
                   ? "bg-white text-black border-white"
                   : "bg-white/5 text-white border-white/10"
@@ -124,29 +108,21 @@ export default function ExplorePage() {
               <span className="text-sm font-bold hidden md:inline">
                 Filters
               </span>
-            </motion.button>
+            </button>
           </div>
 
           <SearchFilter
-            search={searchInput}
-            setSearch={setSearchInput}
+            filters={filters}
+            setFilters={setFilters}
             showFilters={showFilters}
-            setShowFilters={setShowFilters}
-            filterHasRoom={filterHasRoom}
-            setFilterHasRoom={setFilterHasRoom}
-            selectedGender={selectedGender}
-            setSelectedGender={setSelectedGender}
-            selectedUniversity={selectedUniversity}
-            setSelectedUniversity={setSelectedUniversity}
             universities={Array.from(
-              new Set(posts.map((p) => p.user?.university))
+              new Set(posts.map((p) => p.user?.university)),
             ).filter(Boolean)}
           />
         </div>
       </header>
 
-      {/* MAIN CONTENT */}
-      <main className="max-w-7xl mx-auto px-6 mt-10" ref={postsRef}>
+      <main className="max-w-7xl mx-auto px-6 mt-10">
         <div className="flex items-center gap-2 text-gray-500 mb-6 px-2">
           <LayoutGrid size={16} />
           <span className="text-xs font-bold uppercase tracking-widest">
@@ -177,27 +153,17 @@ export default function ExplorePage() {
               </AnimatePresence>
             </div>
 
-            {/* Empty State */}
             {!finalFilteredPosts.length && (
-              <div className="text-center py-40">
-                <div className="bg-white/5 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <LayoutGrid className="text-gray-600" size={32} />
-                </div>
-                <h3 className="text-xl font-bold italic text-gray-400">
-                  No one matches your vibe yet.
-                </h3>
-                <p className="text-gray-600 mt-2">
-                  Try adjusting your filters.
-                </p>
+              <div className="text-center py-40 text-gray-500 italic">
+                No one matches your vibe yet.
               </div>
             )}
 
-            {/* Load More Button */}
             {visiblePosts < finalFilteredPosts.length && (
               <div className="flex justify-center mt-20">
                 <button
                   onClick={() => setVisiblePosts((prev) => prev + 10)}
-                  className="bg-[#1c1c1e] text-white px-10 py-4 rounded-2xl font-bold border border-white/5 hover:bg-white/10 active:scale-95 transition-all shadow-xl">
+                  className="bg-[#1c1c1e] text-white px-10 py-4 rounded-2xl font-bold border border-white/5 hover:bg-white/10 transition-all">
                   Load more posts
                 </button>
               </div>
