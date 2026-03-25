@@ -1,279 +1,119 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin,
   User,
-  Calendar,
-  Clock,
-  ChevronRight,
   Home,
   Search,
-  Info,
-  PhoneCall,
-  EyeClosed,
-  EyeIcon,
+  ChevronDown,
+  ChevronUp,
+  MessageCircle,
 } from "lucide-react";
-import axios from "axios";
 
-export default function PostCard({ post, authToken }) {
+export default function PostCard({ post }) {
   const [expanded, setExpanded] = useState(false);
-  const [requestStatus, setRequestStatus] = useState("none");
-  const [requestId, setRequestId] = useState(null);
-  const [callInfo, setCallInfo] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   if (!post || !post.user) return null;
 
-  // 1️⃣ Format date
-  const formatDate = (dateString) =>
-    new Date(dateString).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "2-digit",
-    });
-
-  // 2️⃣ Fetch request status on mount
-  useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const res = await axios.get(`/api/requests/status/${post._id}`, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-        setRequestStatus(res.data.status);
-        setRequestId(res.data.requestId || null);
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    fetchStatus();
-  }, [post._id, authToken]);
-
-  // 3️⃣ Send request
-  const handleSendRequest = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.post(
-        `/api/requests/send/${post._id}`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${authToken}` },
-        }
-      );
-      setRequestStatus(res.data.status); // should be "pending"
-    } catch (err) {
-      console.log(err);
-      alert(err.response?.data?.message || "Error sending request");
-    }
-    setLoading(false);
-  };
-
-  // 4️⃣ Get call number (if accepted)
-  const handleGetCall = async () => {
-    try {
-      const res = await axios.get(`/api/requests/call/${post._id}`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
-      setCallInfo(res.data);
-    } catch (err) {
-      console.log(err);
-      alert(err.response?.data?.message || "Request not accepted yet");
-    }
-  };
-
   return (
-    <motion.div
-      layout
-      className="w-full max-w-[500px] md:max-w-none mx-auto bg-[#1c1c1e] text-white rounded-[2.5rem] shadow-2xl border border-white/5 overflow-hidden">
-      <div className={`p-5 flex flex-col ${expanded ? "gap-6" : "gap-4"}`}>
-        {/* HEADER */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+    <div className="w-full max-w-[450px] mx-auto bg-[#1c1c1e]/80 backdrop-blur-md text-white rounded-[2rem] shadow-2xl border border-white/10 overflow-hidden transition-all duration-300 hover:border-indigo-500/30">
+      <div className="p-6 flex flex-col gap-5">
+        {/* HEADER SECTION */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-4">
             <div className="relative">
               <img
                 src={
-                  post.user?.profilePic ||
-                  "https://avatar.iran.liara.run/public"
+                  post.user.profilePic || "https://avatar.iran.liara.run/public"
                 }
                 alt={post.user.name}
-                className="w-14 h-14 rounded-full object-cover border-2 border-indigo-500/20"
+                className="w-14 h-14 rounded-2xl object-cover ring-2 ring-white/5"
               />
-              {post.hasRoom && (
-                <div className="absolute -top-1 -right-1 bg-green-500 p-1 rounded-full border-2 border-[#1c1c1e]">
-                  <Home size={10} className="text-white" />
-                </div>
-              )}
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-[#1c1c1e] rounded-full"></div>
             </div>
+
             <div>
-              <h3 className="font-bold text-lg leading-tight">
+              <h3 className="font-bold text-lg tracking-tight leading-none mb-1">
                 {post.user.name}
               </h3>
-              <p className="text-xs text-gray-400 flex items-center gap-1">
-                <MapPin size={12} className="text-indigo-400" /> {post.area},{" "}
+              <p className="text-xs text-gray-400 flex items-center gap-1 font-medium">
+                <MapPin size={14} className="text-indigo-400" /> {post.area},{" "}
                 {post.city}
               </p>
             </div>
           </div>
 
-          <div className="bg-white/5 px-3 py-2 rounded-2xl border border-white/10 text-center">
-            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">
+          <div className="bg-gradient-to-br from-white/10 to-transparent px-4 py-2 rounded-2xl text-right border border-white/5">
+            <p className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
               Budget
             </p>
-            <p className="text-sm font-bold text-green-400">
-              ₹{post.budgetPerPerson}
+            <p className="text-lg font-black text-green-400">
+              ₹{post.budgetPerPerson.toLocaleString("en-IN")}
             </p>
           </div>
         </div>
 
-        {/* BADGES */}
+        {/* BADGES SECTION */}
         <div className="flex flex-wrap gap-2">
           <Badge
-            icon={<User size={13} />}
-            label="Looking for:"
+            icon={<User size={14} />}
             text={post.lookingForGender}
-            color="bg-blue-500/10 text-blue-400 border border-blue-500/20"
+            className="bg-indigo-500/10 text-indigo-300 border border-indigo-500/20"
           />
-          <Badge
-            icon={<Clock size={13} />}
-            label="Stay:"
-            text={`${post.minStayDuration} Months`}
-            color="bg-purple-500/10 text-purple-400 border border-purple-500/20"
-          />
+
           {post.hasRoom ? (
             <Badge
-              icon={<Home size={13} />}
-              text="I have a Room"
-              color="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+              icon={<Home size={14} />}
+              text="Has Room"
+              className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
             />
           ) : (
             <Badge
-              icon={<Search size={13} />}
+              icon={<Search size={14} />}
               text="Looking for Room"
-              color="bg-orange-500/10 text-orange-400 border border-orange-500/20"
+              className="bg-amber-500/10 text-amber-400 border border-amber-500/20"
             />
           )}
         </div>
 
-        {/* EXPANDED CONTENT */}
-        <AnimatePresence>
-          {expanded && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="space-y-5">
-              <div className="grid grid-cols-2 gap-3">
-                <DetailBox
-                  label="Available From"
-                  value={formatDate(post.fromDate)}
-                  icon={<Calendar size={14} />}
-                />
-                <DetailBox
-                  label="Available Till"
-                  value={formatDate(post.toDate)}
-                  icon={<Calendar size={14} />}
-                />
-              </div>
+        {/* DESCRIPTION SECTION */}
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${expanded ? "max-h-40" : "max-h-0"}`}>
+          <div className="pt-2 text-sm text-gray-400 leading-relaxed italic border-t border-white/5 mt-2">
+            "{post.description}"
+          </div>
+        </div>
 
-              {post.hasRoom && (
-                <div className="bg-white/5 rounded-3xl p-4 border border-white/5 space-y-3">
-                  <h4 className="text-xs font-bold uppercase text-indigo-400 flex items-center gap-2">
-                    <Home size={14} /> My Room Details
-                  </h4>
-                  <p className="text-sm text-gray-300 leading-relaxed">
-                    {post.roomDescription}
-                  </p>
-                </div>
-              )}
-
-              <div className="px-1">
-                <h4 className="text-xs font-bold uppercase text-indigo-400 flex items-center gap-2 mb-1">
-                  <Info size={14} /> About this post
-                </h4>
-                <p className="text-sm text-gray-300 italic">
-                  "{post.description}"
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ACTIONS */}
-        <div className="flex items-center gap-3 pt-2">
-          {/* ✅ REQUEST BUTTON */}
-          {requestStatus === "none" && (
-            <button
-              disabled={loading}
-              onClick={handleSendRequest}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
-              Send Request
-            </button>
-          )}
-
-          {requestStatus === "pending" && (
-            <button className="flex-1 bg-gray-700 cursor-not-allowed py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
-              Request Pending
-            </button>
-          )}
-
-          {requestStatus === "accepted" && !callInfo && (
-            <button
-              onClick={handleGetCall}
-              className="flex-1 bg-green-600 hover:bg-green-500 active:scale-95 transition-all py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
-              Show Contact
-            </button>
-          )}
-
-          {callInfo && (
-            <a
-              href={`tel:${callInfo.phone}`}
-              className="flex-1 bg-green-600 hover:bg-green-500 active:scale-95 transition-all py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
-              <PhoneCall size={18} /> {callInfo.name}: {callInfo.phone}
-            </a>
-          )}
+        {/* ACTION BUTTONS */}
+        <div className="flex items-center gap-3 mt-2">
+          <button className="flex-[2] flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.97] transition-all py-3.5 rounded-2xl font-bold shadow-lg shadow-indigo-600/20">
+            <MessageCircle size={18} />
+            Connect
+          </button>
 
           <Link
             to={`/user-profile/${post.user._id}`}
-            className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 active:scale-95 transition-all">
-            <EyeIcon size={20} />
+            className="flex-1 text-center py-3.5 bg-white/5 hover:bg-white/10 active:scale-[0.97] transition-all rounded-2xl font-semibold border border-white/10">
+            Profile
           </Link>
 
           <button
             onClick={() => setExpanded(!expanded)}
-            className="text-xs font-bold text-indigo-400 uppercase tracking-widest ml-auto">
-            {expanded ? "Show Less" : "Show More"}
+            className="p-3 text-gray-400 hover:text-white transition-colors">
+            {expanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
           </button>
         </div>
       </div>
-    </motion.div>
-  );
-}
-
-// Badge Component
-function Badge({ icon, label, text, color }) {
-  return (
-    <div
-      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold ${color}`}>
-      {icon}
-      <span>
-        {label && <span className="opacity-70 mr-1 font-medium">{label}</span>}
-        {text}
-      </span>
     </div>
   );
 }
 
-// DetailBox Component
-function DetailBox({ label, value, icon }) {
+function Badge({ icon, text, className }) {
   return (
-    <div className="bg-white/5 p-3 rounded-2xl border border-white/5 flex items-start gap-2">
-      <div className="mt-1 text-indigo-400">{icon}</div>
-      <div>
-        <p className="text-[9px] text-gray-500 uppercase font-black tracking-tighter">
-          {label}
-        </p>
-        <p className="text-sm font-semibold">{value}</p>
-      </div>
+    <div
+      className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${className}`}>
+      {icon}
+      {text}
     </div>
   );
 }

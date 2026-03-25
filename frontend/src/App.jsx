@@ -12,7 +12,7 @@ import Notifications from "./pages/Notification";
 import ExplorePage from "./pages/ExplorePage";
 import ViewProfile from "./pages/ViewProfile";
 import MyPostsPage from "./pages/MyPost";
-import CreatePostPage from "./pages/CreatePost";
+
 
 import { useDispatch } from "react-redux";
 import { setUser } from "./redux/authSlice";
@@ -97,22 +97,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/create-post"
-            element={
-              <ProtectedRoute>
-                <CreatePostPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/create-post/:id"
-            element={
-              <ProtectedRoute>
-                <CreatePostPage />
-              </ProtectedRoute>
-            }
-          />
+       
+      
           <Route
             path="/user-profile/:id"
             element={
