@@ -7,6 +7,7 @@ import userRoute from "./routes/user.route.js";
 import postRoute from "./routes/post.route.js";
 import requestRoute from "./routes/request.route.js";
 import authRoute from "./routes/auth.route.js";
+import aiRoutes from "./routes/ai.routes.js";
 dotenv.config();
 
 const app = express();
@@ -24,8 +25,8 @@ app.use(cookieParser());
 app.use("/api/user", userRoute);
 app.use("/api/user-post", postRoute);
 app.use("/api/request", requestRoute);
-app.use("/api/auth", authRoute); 
-
+app.use("/api/auth", authRoute);
+app.use("/api", aiRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
