@@ -69,8 +69,8 @@ export default function Profile() {
     city: "",
     phone: "",
     profilePic: "",
-    sleepTime: dayjs(),
-    wakeTime: dayjs(),
+    sleepTime: null,
+    wakeTime: null,
     smoking: false,
     drinking: false,
     foodPreference: "",
@@ -85,8 +85,9 @@ export default function Profile() {
       setForm({
         ...form,
         ...user,
-        sleepTime: user.sleepTime ? dayjs(user.sleepTime, "HH:mm") : dayjs(),
-        wakeTime: user.wakeTime ? dayjs(user.wakeTime, "HH:mm") : dayjs(),
+        // "hh:mm A" ensures 12-hour parsing with AM/PM
+        sleepTime: user.sleepTime ? dayjs(user.sleepTime, "hh:mm A") : null,
+        wakeTime: user.wakeTime ? dayjs(user.wakeTime, "hh:mm A") : null,
       });
       setImage(user.profilePic || null);
     }
@@ -118,20 +119,22 @@ export default function Profile() {
       };
     });
   };
-
   const handleSubmit = async () => {
     dispatch(setLoading(true));
     try {
       const payload = {
         ...form,
-        sleepTime: dayjs(form.sleepTime).format("HH:mm"),
-        wakeTime: dayjs(form.wakeTime).format("HH:mm"),
+        // Save as "09:30 PM" instead of "21:30"
+        sleepTime: form.sleepTime
+          ? dayjs(form.sleepTime).format("hh:mm A")
+          : "",
+        wakeTime: form.wakeTime ? dayjs(form.wakeTime).format("hh:mm A") : "",
       };
 
       const res = await axios.put(
         `${USER_API_END_POINT}/profile/${user._id}`,
         payload,
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       dispatch(setUser(res.data.user));
@@ -191,7 +194,11 @@ export default function Profile() {
                     <AcademicSection form={form} handleChange={handleChange} />
                   )}
                   {step === 2 && (
-                    <Lifestyle form={form} handleChange={handleChange} />
+                    <Lifestyle
+                      form={form}
+                      setForm={setForm}
+                      handleChange={handleChange}
+                    />
                   )}
                   {step === 3 && (
                     <Preferences

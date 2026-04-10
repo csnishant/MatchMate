@@ -34,8 +34,8 @@ const Preferences = ({ form, handleChipToggle, handleChange }) => {
 
       <TextField
         label="Personality"
-        name="Personality"
-        value={form.Personality}
+        name="personality" // 👈 Ensure this is lowercase to match your schema/state
+        value={form.personality || ""}
         onChange={handleChange}
         select
         fullWidth>

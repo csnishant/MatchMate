@@ -1,4 +1,6 @@
-import Post from "../models/Post.js"; // make sure path is correct
+import { calculateMatchScore } from "../config/aiMatcher.js";
+import Post from "../models/post.js"; // make sure path is correct
+import User from "../models/user.js";
 
 export const createPost = async (req, res) => {
   try {
@@ -56,26 +58,41 @@ export const createPost = async (req, res) => {
 };
 export const getAllPosts = async (req, res) => {
   try {
-    const userId = req.userId; // ✅ current logged-in user
+    const userId = req.userId;
+    const currentUser = await User.findById(userId);
 
-    const posts = await Post.find({
-      user: { $ne: userId },
-      // ❌ apni post exclude
-      isActive: true,
-    })
-      .populate("user", "name gender age university course profilePic")
+    // Saari active posts fetch karein (sirf apni chhod kar)
+    const posts = await Post.find({ user: { $ne: userId }, isActive: true })
+      .populate("user") // Poora user object chahiye scoring ke liye
       .sort({ createdAt: -1 });
+
+    // AI Scoring for each post
+    const scoredPosts = await Promise.all(
+      posts.map(async (post) => {
+        // Agar post creator ka data missing hai toh skip ya default score
+        if (!post.user) return { ...post._doc, matchScore: 0 };
+
+        const aiResult = await calculateMatchScore(currentUser, post.user);
+
+        return {
+          ...post._doc,
+          matchScore: aiResult.score,
+          matchReason: aiResult.reason,
+        };
+      }),
+    );
+
+    // Sabse zyada compatible posts ko sabse upar dikhao
+    scoredPosts.sort((a, b) => b.matchScore - a.matchScore);
 
     res.status(200).json({
       success: true,
-      posts,
+      posts: scoredPosts,
     });
   } catch (error) {
-    console.error("Get All Posts Error:", error);
-    res.status(500).json({ message: "Failed to fetch posts" });
+    res.status(500).json({ message: "Error fetching matched posts" });
   }
 };
-
 export const getMyPosts = async (req, res) => {
   try {
     const userId = req.userId;

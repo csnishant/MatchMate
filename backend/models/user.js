@@ -50,13 +50,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ["Veg", "Non-Veg", "Vegan", "Eggetarian"],
   },
-  introvertOrExtrovert: {
+  personality: {
     type: String,
-    enum: ["Introvert", "Extrovert", "Ambivert"],
   },
-
-  // 4. PREFERENCES
-  personality: [String], // Optional if you want to track personality traits
+  // Optional if you want to track personality traits
   hobbies: [String],
   preferredLanguages: [String],
 
@@ -75,7 +72,6 @@ const userSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
-
 
 const User = mongoose.model("User", userSchema);
 

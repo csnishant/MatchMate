@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronUp,
   MessageCircle,
+  Sparkles,
 } from "lucide-react";
 
 export default function PostCard({ post }) {
@@ -17,6 +18,15 @@ export default function PostCard({ post }) {
 
   return (
     <div className="w-full max-w-[450px] mx-auto bg-[#1c1c1e]/80 backdrop-blur-md text-white rounded-[2rem] shadow-2xl border border-white/10 overflow-hidden transition-all duration-300 hover:border-indigo-500/30">
+      {/* AI MATCH SCORE BADGE - Naya Add kiya gaya */}
+      {post.matchScore !== undefined && (
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-yellow-400/10 border border-yellow-400/20 px-3 py-1 rounded-full backdrop-blur-xl">
+          <Sparkles  size={12} className="text-yellow-400 fill-yellow-400" />
+          <span className="text-[10px] font-black text-yellow-400 uppercase tracking-tighter">
+            {post.matchScore}% Match
+          </span>
+        </div>
+      )}
       <div className="p-6 flex flex-col gap-5">
         {/* HEADER SECTION */}
         <div className="flex items-start justify-between">
@@ -76,11 +86,21 @@ export default function PostCard({ post }) {
           )}
         </div>
 
-        {/* DESCRIPTION SECTION */}
+        {/* DESCRIPTION SECTION - Isme Match Reason bhi dikha sakte hain */}
         <div
-          className={`overflow-hidden transition-all duration-300 ease-in-out ${expanded ? "max-h-40" : "max-h-0"}`}>
-          <div className="pt-2 text-sm text-gray-400 leading-relaxed italic border-t border-white/5 mt-2">
-            "{post.description}"
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${expanded ? "max-h-60" : "max-h-0"}`}>
+          <div className="pt-2 text-sm text-gray-400 leading-relaxed italic border-t border-white/5 mt-2 flex flex-col gap-3">
+            <p>"{post.description}"</p>
+
+            {/* AI Reason dikhane ke liye */}
+            {post.matchReason && (
+              <div className="bg-indigo-500/5 p-3 rounded-xl border border-indigo-500/10 not-italic">
+                <p className="text-[10px] font-bold text-indigo-400 uppercase mb-1">
+                  AI Insights
+                </p>
+                <p className="text-xs text-gray-300">{post.matchReason}</p>
+              </div>
+            )}
           </div>
         </div>
 

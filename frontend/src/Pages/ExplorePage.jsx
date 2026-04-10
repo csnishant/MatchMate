@@ -69,17 +69,22 @@ export default function ExplorePage() {
     "user.name",
   ]);
 
-  const finalFilteredPosts = textFilteredPosts.filter((post) => {
-    if (!post.user) return false;
-    const genderMatch =
-      !filters.gender || post.lookingForGender === filters.gender;
-    const uniMatch =
-      !filters.university || post.user?.university === filters.university;
-    const roomMatch =
-      !filters.hasRoom ||
-      (filters.hasRoom === "yes" ? post.hasRoom : !post.hasRoom);
-    return genderMatch && uniMatch && roomMatch;
-  });
+  // ExplorePage mein bas "finalFilteredPosts" ki sorting logic check karni hai
+
+  const finalFilteredPosts = textFilteredPosts
+    .filter((post) => {
+      if (!post.user) return false;
+      const genderMatch =
+        !filters.gender || post.lookingForGender === filters.gender;
+      const uniMatch =
+        !filters.university || post.user?.university === filters.university;
+      const roomMatch =
+        !filters.hasRoom ||
+        (filters.hasRoom === "yes" ? post.hasRoom : !post.hasRoom);
+      return genderMatch && uniMatch && roomMatch;
+    })
+    // AGAR backend se matchScore aa raha hai, toh use score ke hisaab se sort karein
+    .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
 
   if (!user) return null;
 
