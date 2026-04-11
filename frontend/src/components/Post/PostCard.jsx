@@ -1,139 +1,152 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  MapPin,
-  User,
-  Home,
-  Search,
-  ChevronDown,
-  ChevronUp,
-  MessageCircle,
-  Sparkles,
-} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { MapPin, ChevronDown, Sparkles, Zap, ExternalLink, Eye, View, BookOpen, BookOpenIcon, LucideView, ViewIcon, EyeIcon, ScanEye } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function PostCard({ post }) {
   const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
 
   if (!post || !post.user) return null;
 
+  const score = post.matchScore || 0;
+  // Circular calculation: Circumference of a 28r circle is ~176
+  const strokeDashoffset = 176 - (176 * score) / 100;
+
   return (
-    <div className="w-full max-w-[450px] mx-auto bg-[#1c1c1e]/80 backdrop-blur-md text-white rounded-[2rem] shadow-2xl border border-white/10 overflow-hidden transition-all duration-300 hover:border-indigo-500/30">
-      {/* AI MATCH SCORE BADGE - Naya Add kiya gaya */}
-      {post.matchScore !== undefined && (
-        <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-yellow-400/10 border border-yellow-400/20 px-3 py-1 rounded-full backdrop-blur-xl">
-          <Sparkles  size={12} className="text-yellow-400 fill-yellow-400" />
-          <span className="text-[10px] font-black text-yellow-400 uppercase tracking-tighter">
-            {post.matchScore}% Match
-          </span>
-        </div>
-      )}
-      <div className="p-6 flex flex-col gap-5">
-        {/* HEADER SECTION */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-4">
-            <div className="relative">
+    <motion.div
+      layout
+      className="w-full max-w-[400px] mx-auto bg-[#121214] border border-white/5 rounded-[2rem] shadow-2xl overflow-hidden transition-all duration-300 hover:border-indigo-500/30 mb-3">
+      <div className="p-4 flex flex-col gap-3">
+        {/* TOP ROW: PFP with Circular Progress + Name + Score */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {/* PROFILE IMAGE WITH PROGRESS BORDER */}
+            <div className="relative flex items-center justify-center w-14 h-14">
+              <svg className="absolute w-full h-full transform -rotate-90">
+                <circle
+                  cx="28"
+                  cy="28"
+                  r="26"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  fill="transparent"
+                  className="text-white/5"
+                />
+                <motion.circle
+                  initial={{ strokeDashoffset: 176 }}
+                  animate={{ strokeDashoffset }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                  cx="28"
+                  cy="28"
+                  r="26"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  fill="transparent"
+                  strokeDasharray="176"
+                  className="text-indigo-500 drop-shadow-[0_0_5px_rgba(99,102,241,0.8)]"
+                />
+              </svg>
               <img
                 src={
                   post.user.profilePic || "https://avatar.iran.liara.run/public"
                 }
-                alt={post.user.name}
-                className="w-14 h-14 rounded-2xl object-cover ring-2 ring-white/5"
+                className="w-[42px] h-[42px] rounded-full object-cover z-10"
+                alt="pfp"
               />
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-[#1c1c1e] rounded-full"></div>
             </div>
 
-            <div>
-              <h3 className="font-bold text-lg tracking-tight leading-none mb-1">
-                {post.user.name}
-              </h3>
-              <p className="text-xs text-gray-400 flex items-center gap-1 font-medium">
-                <MapPin size={14} className="text-indigo-400" /> {post.area},{" "}
-                {post.city}
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <h3 className="text-white font-bold text-[15px] tracking-tight">
+                  {post.user.name}
+                </h3>
+                <div className="flex items-center gap-1 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                  <Sparkles
+                    size={10}
+                    className="text-indigo-400 fill-indigo-400"
+                  />
+                  <span className="text-[10px] font-black text-indigo-400 italic">
+                    {score}%
+                  </span>
+                </div>
+              </div>
+              <p className="text-[10px] text-gray-500 flex items-center gap-1 font-bold uppercase tracking-tighter">
+                <MapPin size={10} className="text-indigo-500" /> {post.area}
               </p>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-white/10 to-transparent px-4 py-2 rounded-2xl text-right border border-white/5">
-            <p className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
-              Budget
-            </p>
-            <p className="text-lg font-black text-green-400">
-              ₹{post.budgetPerPerson.toLocaleString("en-IN")}
-            </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate(`/user-profile/${post.user._id}`)}
+              className="p-2.5 bg-white/5 hover:bg-white hover:text-black rounded-xl border border-white/5 transition-all active:scale-90">
+              <Eye size={16} />
+            </button>
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className={`p-1.5 transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}>
+              <ChevronDown size={20} className="text-gray-600" />
+            </button>
           </div>
         </div>
 
-        {/* BADGES SECTION */}
-        <div className="flex flex-wrap gap-2">
-          <Badge
-            icon={<User size={14} />}
-            text={post.lookingForGender}
-            className="bg-indigo-500/10 text-indigo-300 border border-indigo-500/20"
-          />
-
-          {post.hasRoom ? (
-            <Badge
-              icon={<Home size={14} />}
-              text="Has Room"
-              className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-            />
-          ) : (
-            <Badge
-              icon={<Search size={14} />}
-              text="Looking for Room"
-              className="bg-amber-500/10 text-amber-400 border border-amber-500/20"
-            />
-          )}
+        {/* COMPACT BUDGET BAR */}
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col">
+              <span className="text-[8px] font-black text-gray-600 uppercase">
+                Budget
+              </span>
+              <span className="text-sm font-black text-white leading-none">
+                ₹{post.budgetPerPerson?.toLocaleString()}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[8px] font-black text-gray-600 uppercase">
+                Status
+              </span>
+              <span
+                className={`text-[10px] font-bold leading-none ${post.hasRoom ? "text-emerald-400" : "text-amber-400"}`}>
+                {post.hasRoom ? "HAS ROOM" : "SEARCHING ROOMMATE"}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* DESCRIPTION SECTION - Isme Match Reason bhi dikha sakte hain */}
-        <div
-          className={`overflow-hidden transition-all duration-300 ease-in-out ${expanded ? "max-h-60" : "max-h-0"}`}>
-          <div className="pt-2 text-sm text-gray-400 leading-relaxed italic border-t border-white/5 mt-2 flex flex-col gap-3">
-            <p>"{post.description}"</p>
+        {/* AI INSIGHT: DROPS LIKE A PREMIUM MESSAGE BUBBLE */}
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0, y: -5 }}
+              animate={{ height: "auto", opacity: 1, y: 0 }}
+              exit={{ height: 0, opacity: 0, y: -5 }}
+              className="overflow-hidden">
+              <div className="mt-2 p-3 bg-gradient-to-br from-indigo-600/10 to-transparent border border-indigo-500/20 rounded-2xl relative">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Zap size={10} className="text-indigo-400 fill-indigo-400" />
 
-            {/* AI Reason dikhane ke liye */}
-            {post.matchReason && (
-              <div className="bg-indigo-500/5 p-3 rounded-xl border border-indigo-500/10 not-italic">
-                <p className="text-[10px] font-bold text-indigo-400 uppercase mb-1">
-                  AI Insights
+                  <span className="text-[9px] font-black text-indigo-300 uppercase tracking-widest">
+                    AI Matching Analysis
+                  </span>
+                </div>
+                <p className="text-[12px] text-gray-300 leading-snug font-medium italic">
+                  "{post.matchReason || post.description}"
                 </p>
-                <p className="text-xs text-gray-300">{post.matchReason}</p>
+                <Sparkles
+                  size={30}
+                  className="absolute bottom-1 right-2 text-indigo-500/5"
+                />
+                <div className="px-1">
+                  <p className="text-xs text-gray-400 leading-relaxed italic line-clamp-2">
+                    "{post.description}"
+                  </p>
+                </div>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* ACTION BUTTONS */}
-        <div className="flex items-center gap-3 mt-2">
-          <button className="flex-[2] flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.97] transition-all py-3.5 rounded-2xl font-bold shadow-lg shadow-indigo-600/20">
-            <MessageCircle size={18} />
-            Connect
-          </button>
-
-          <Link
-            to={`/user-profile/${post.user._id}`}
-            className="flex-1 text-center py-3.5 bg-white/5 hover:bg-white/10 active:scale-[0.97] transition-all rounded-2xl font-semibold border border-white/10">
-            Profile
-          </Link>
-
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="p-3 text-gray-400 hover:text-white transition-colors">
-            {expanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-          </button>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
-  );
-}
-
-function Badge({ icon, text, className }) {
-  return (
-    <div
-      className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${className}`}>
-      {icon}
-      {text}
-    </div>
+    </motion.div>
   );
 }
