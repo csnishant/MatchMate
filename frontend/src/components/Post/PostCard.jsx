@@ -1,6 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, ChevronDown, Sparkles, Zap, ExternalLink, Eye, View, BookOpen, BookOpenIcon, LucideView, ViewIcon, EyeIcon, ScanEye } from "lucide-react";
+import {
+  MapPin,
+  ChevronDown,
+  Sparkles,
+  Zap,
+  Eye,
+  Users,
+  Home,
+  Search,
+  Target,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function PostCard({ post }) {
@@ -10,7 +20,6 @@ export default function PostCard({ post }) {
   if (!post || !post.user) return null;
 
   const score = post.matchScore || 0;
-  // Circular calculation: Circumference of a 28r circle is ~176
   const strokeDashoffset = 176 - (176 * score) / 100;
 
   return (
@@ -18,10 +27,9 @@ export default function PostCard({ post }) {
       layout
       className="w-full max-w-[400px] mx-auto bg-[#121214] border border-white/5 rounded-[2rem] shadow-2xl overflow-hidden transition-all duration-300 hover:border-indigo-500/30 mb-3">
       <div className="p-4 flex flex-col gap-3">
-        {/* TOP ROW: PFP with Circular Progress + Name + Score */}
+        {/* TOP ROW: PFP + Name + Score */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* PROFILE IMAGE WITH PROGRESS BORDER */}
             <div className="relative flex items-center justify-center w-14 h-14">
               <svg className="absolute w-full h-full transform -rotate-90">
                 <circle
@@ -104,44 +112,81 @@ export default function PostCard({ post }) {
             </div>
             <div className="flex flex-col">
               <span className="text-[8px] font-black text-gray-600 uppercase">
-                Status
+                Current Status
               </span>
               <span
                 className={`text-[10px] font-bold leading-none ${post.hasRoom ? "text-emerald-400" : "text-amber-400"}`}>
-                {post.hasRoom ? "HAS ROOM" : "SEARCHING ROOMMATE"}
+                {post.hasRoom ? "HAS ROOM" : "NEED ROOM"}
               </span>
             </div>
           </div>
         </div>
 
-        {/* AI INSIGHT: DROPS LIKE A PREMIUM MESSAGE BUBBLE */}
+        {/* EXPANDABLE SECTION */}
         <AnimatePresence>
           {expanded && (
             <motion.div
-              initial={{ height: 0, opacity: 0, y: -5 }}
-              animate={{ height: "auto", opacity: 1, y: 0 }}
-              exit={{ height: 0, opacity: 0, y: -5 }}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden">
+              {/* AI INSIGHT */}
               <div className="mt-2 p-3 bg-gradient-to-br from-indigo-600/10 to-transparent border border-indigo-500/20 rounded-2xl relative">
-                <div className="flex items-center gap-1.5 mb-1.5">
+                <div className="flex items-center gap-1.5 mb-2">
                   <Zap size={10} className="text-indigo-400 fill-indigo-400" />
-
                   <span className="text-[9px] font-black text-indigo-300 uppercase tracking-widest">
                     AI Matching Analysis
                   </span>
                 </div>
-                <p className="text-[12px] text-gray-300 leading-snug font-medium italic">
-                  "{post.matchReason || post.description}"
+                <p className="text-[12px] text-gray-300 leading-snug font-medium italic mb-2">
+                  "
+                  {post.matchReason ||
+                    "Great potential match based on your lifestyle preferences."}
+                  "
                 </p>
-                <Sparkles
-                  size={30}
-                  className="absolute bottom-1 right-2 text-indigo-500/5"
-                />
-                <div className="px-1">
-                  <p className="text-xs text-gray-400 leading-relaxed italic line-clamp-2">
-                    "{post.description}"
-                  </p>
+              </div>
+
+              {/* DETAILED REQUIREMENTS */}
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {/* Looking For Gender */}
+                <div className="bg-white/5 p-2 rounded-xl border border-white/5">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Target size={12} className="text-pink-500" />
+                    <span className="text-[8px] font-bold text-gray-500 uppercase">
+                      Looking For
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-white font-semibold">
+                    {post.lookingForGender || "Any"} Gender
+                  </span>
                 </div>
+
+                {/* Preference Status */}
+                <div className="bg-white/5 p-2 rounded-xl border border-white/5">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    {post.hasRoom ? (
+                      <Users size={12} className="text-blue-400" />
+                    ) : (
+                      <Home size={12} className="text-orange-400" />
+                    )}
+                    <span className="text-[8px] font-bold text-gray-500 uppercase">
+                      Intent
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-white font-semibold">
+                    {post.hasRoom ? "Needs Roommate" : "Needs Room & Roommate"}
+                  </span>
+                </div>
+              </div>
+
+              {/* DESCRIPTION SECTION */}
+              <div className="mt-3 px-1">
+                <span className="text-[8px] font-bold text-gray-500 uppercase block mb-1">
+                  About the Search
+                </span>
+                <p className="text-xs text-gray-400 leading-relaxed italic">
+                  "{post.description}"
+                </p>
               </div>
             </motion.div>
           )}

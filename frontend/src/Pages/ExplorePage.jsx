@@ -22,12 +22,13 @@ export default function ExplorePage() {
   const [visiblePosts, setVisiblePosts] = useState(10);
 
   // Filter States
-  const [filters, setFilters] = useState({
-    search: params.get("search") || "",
-    gender: "",
-    university: "",
-    hasRoom: "",
-  });
+const [filters, setFilters] = useState({
+  // Priority: URL Query -> User's Profile City -> Empty String
+  search: params.get("search") || user?.city || "",
+  gender: "",
+  university: "",
+  hasRoom: "",
+});
 
   useEffect(() => {
     if (!user) {
@@ -36,23 +37,38 @@ export default function ExplorePage() {
     }
   }, [user, navigate]);
 
+ 
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
       setLoading(true);
       try {
-        const { data } = await axios.get(`${POST_API_END_POINT}/all-posts`, {
-          withCredentials: true,
-        });
-        if (data.success) setPosts(data.posts);
+        // filters.search ko city query param ki tarah bhejien
+        const cityQuery = filters.search ? `?city=${filters.search}` : "";
+
+        const { data } = await axios.get(
+          `${POST_API_END_POINT}/all-posts${cityQuery}`,
+          { withCredentials: true },
+        );
+
+        if (data.success) {
+          setPosts(data.posts);
+        }
       } catch (err) {
-        toast.error("Failed to fetch posts");
+        // Pehli baar bina city ke error handle karne ke liye
+        console.log("Waiting for city input...");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, [user]);
+
+    // Debouncing use karein ya fir jab search length > 2 ho tabhi call karein
+    const delayDebounceFn = setTimeout(() => {
+      fetchData();
+    }, 500); // 500ms delay taaki har character par API hit na ho
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [user, filters.search]); // filters.search add kiya yahan
 
   // Sync URL with Search Input
   useEffect(() => {

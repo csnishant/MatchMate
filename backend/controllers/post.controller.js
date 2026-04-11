@@ -1,6 +1,8 @@
-import { calculateMatchScore } from "../config/aiMatcher.js";
 import Post from "../models/post.js"; // make sure path is correct
 import User from "../models/user.js";
+import { calculateScore } from "../utils/calculateScore.js";
+import { generateMatchInsight } from "../utils/generateMatchInsight.js";
+import { getMatchAggregation } from "../utils/matchPipeline.js";
 
 export const createPost = async (req, res) => {
   try {
@@ -56,41 +58,81 @@ export const createPost = async (req, res) => {
       .json({ message: "Failed to create post", error: err.message });
   }
 };
+
 export const getAllPosts = async (req, res) => {
   try {
     const userId = req.userId;
-    const currentUser = await User.findById(userId);
+    const { city } = req.query;
 
-    // Saari active posts fetch karein (sirf apni chhod kar)
-    const posts = await Post.find({ user: { $ne: userId }, isActive: true })
-      .populate("user") // Poora user object chahiye scoring ke liye
-      .sort({ createdAt: -1 });
+    // ❌ Validation
+    if (!city) {
+      return res.status(400).json({
+        success: false,
+        message: "City is required for matching",
+      });
+    }
 
-    // AI Scoring for each post
-    const scoredPosts = await Promise.all(
-      posts.map(async (post) => {
-        // Agar post creator ka data missing hai toh skip ya default score
-        if (!post.user) return { ...post._doc, matchScore: 0 };
-
-        const aiResult = await calculateMatchScore(currentUser, post.user);
-
-        return {
-          ...post._doc,
-          matchScore: aiResult.score,
-          matchReason: aiResult.reason,
-        };
-      }),
+    // 🔹 1. Get current user
+    const currentUser = await User.findById(userId).select(
+      "smoking drinking sleepTime wakeTime foodPreference cleanlinessLevel personality",
     );
 
-    // Sabse zyada compatible posts ko sabse upar dikhao
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // 🔹 2. Get posts from aggregation (fast filtering)
+    const posts = await getMatchAggregation(currentUser, city);
+
+    // 🔥 3. FAST SCORING (NO AI = HIGH PERFORMANCE)
+ const scoredPosts = posts.map((post) => {
+   if (!post.creatorDetails) {
+     return {
+       ...post,
+       matchScore: 0,
+       matchReason: "Profile incomplete",
+     };
+   }
+
+   const score = calculateScore(currentUser, post.creatorDetails);
+
+   return {
+     ...post,
+     user: post.creatorDetails,
+     matchScore: score,
+   };
+ });
+
+ // AI ONLY FOR TOP RESULTS
+ const topPosts = scoredPosts.slice(0, 5);
+
+ await Promise.all(
+   topPosts.map(async (post) => {
+     const ai = await generateMatchInsight(currentUser, post.user);
+
+     post.matchReason = ai.reason;
+   }),
+ );
+
+    // 🔹 4. Sort by best match
     scoredPosts.sort((a, b) => b.matchScore - a.matchScore);
 
-    res.status(200).json({
+    // 🔹 5. Send response
+    return res.status(200).json({
       success: true,
+      count: scoredPosts.length,
       posts: scoredPosts,
     });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching matched posts" });
+    console.error("Fetch Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching matched posts",
+    });
   }
 };
 export const getMyPosts = async (req, res) => {

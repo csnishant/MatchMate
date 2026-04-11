@@ -32,7 +32,7 @@ export default function SearchFilter({
             name="search"
             value={filters.search}
             onChange={handleChange}
-            placeholder="Search by city, area, or name..."
+            placeholder="Enter city to find matches (e.g. Bhopal, Indore).."
             className="w-full bg-[#1c1c1e] border border-white/5 rounded-[22px] pl-12 pr-4 py-4 text-sm text-white outline-none focus:border-indigo-500/30 focus:bg-[#242427] transition-all"
           />
         </div>
