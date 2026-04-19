@@ -14,10 +14,16 @@ import aiRoutes from "./routes/ai.routes.js";
 
 const app = express();
 
+// const corsOptions = {
+//   origin: "http://localhost:5173",
+//   credentials: true,
+// };
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: "https://match-mate-app.netlify.app", // Aapka Netlify URL
   credentials: true,
 };
+
+
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
