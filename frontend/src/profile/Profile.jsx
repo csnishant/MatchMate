@@ -5,52 +5,20 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
 import { setLoading, setUser } from "@/redux/authSlice";
-import axios from "axios";
 import { USER_API_END_POINT } from "@/utils/constant";
 import toast from "react-hot-toast";
 import { ChevronLeft, ChevronRight, Check } from "lucide-react";
-
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-
 // Sections
 import BasicInfo from "./BasicInfo";
 import AcademicSection from "./AcademicSection";
 import Lifestyle from "./Lifestyle";
 import Preferences from "./Preferences";
 import Expectations from "./Expectations";
+import { updateUserProfile } from "../api/userApi";
+import { darkTheme } from "../theme/theme";
 
 const steps = ["Basic", "Academic", "Lifestyle", "Preferences", "Expectations"];
-
-// 🌙 GLOBAL DARK THEME FOR MUI
-const darkTheme = createTheme({
-  palette: {
-    mode: "dark",
-    background: {
-      default: "#000",
-      paper: "#1c1c1e",
-    },
-  },
-  components: {
-    MuiOutlinedInput: {
-      styleOverrides: {
-        root: {
-          borderRadius: "18px",
-          backgroundColor: "#1c1c1e",
-        },
-        notchedOutline: {
-          borderColor: "rgba(255,255,255,0.1)",
-        },
-      },
-    },
-    MuiInputLabel: {
-      styleOverrides: {
-        root: {
-          color: "#9ca3af",
-        },
-      },
-    },
-  },
-});
 
 export default function Profile() {
   const dispatch = useDispatch();
@@ -131,12 +99,7 @@ export default function Profile() {
         wakeTime: form.wakeTime ? dayjs(form.wakeTime).format("hh:mm A") : "",
       };
 
-      const res = await axios.put(
-        `${USER_API_END_POINT}/profile/${user._id}`,
-        payload,
-        { withCredentials: true },
-      );
-
+      const res = await updateUserProfile(user._id, payload);
       dispatch(setUser(res.data.user));
       localStorage.setItem("user", JSON.stringify(res.data.user));
       toast.success("Profile Updated ✨");

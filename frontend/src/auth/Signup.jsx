@@ -1,13 +1,11 @@
 import React, { useState } from "react";
-import axios from "axios";
-
 import { useNavigate, Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { UserCircle2, Globe2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { AUTH_API_END_POINT } from "@/utils/constant";
+import { signupUser } from "../api/authApi";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -38,10 +36,7 @@ const Signup = () => {
     };
 
     try {
-      const res = await axios.post(
-        `${AUTH_API_END_POINT}/signup`,
-        finalPayload
-      );
+      const res = await signupUser(formData);
       toast.success(res.data.message || "Account created!");
       navigate("/login");
     } catch (error) {

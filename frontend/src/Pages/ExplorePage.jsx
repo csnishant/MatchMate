@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { POST_API_END_POINT } from "@/utils/constant";
 import SearchFilter from "@/components/SearchFilter";
 import { useSearchFilter } from "@/hooks/useSearchFilter";
 import toast from "react-hot-toast";
 import { LayoutGrid, Loader2, Sparkles, SlidersHorizontal } from "lucide-react";
 import { useSelector } from "react-redux";
 import PostCard from "@/components/Post/PostCard";
+import { getAllPosts } from "../api/postApi";
 
 export default function ExplorePage() {
   const { user } = useSelector((state) => state.auth);
@@ -22,13 +21,13 @@ export default function ExplorePage() {
   const [visiblePosts, setVisiblePosts] = useState(10);
 
   // Filter States
-const [filters, setFilters] = useState({
-  // Priority: URL Query -> User's Profile City -> Empty String
-  search: params.get("search") || user?.city || "",
-  gender: "",
-  university: "",
-  hasRoom: "",
-});
+  const [filters, setFilters] = useState({
+    // Priority: URL Query -> User's Profile City -> Empty String
+    search: params.get("search") || user?.city || "",
+    gender: "",
+    university: "",
+    hasRoom: "",
+  });
 
   useEffect(() => {
     if (!user) {
@@ -37,7 +36,6 @@ const [filters, setFilters] = useState({
     }
   }, [user, navigate]);
 
- 
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
@@ -46,10 +44,7 @@ const [filters, setFilters] = useState({
         // filters.search ko city query param ki tarah bhejien
         const cityQuery = filters.search ? `?city=${filters.search}` : "";
 
-        const { data } = await axios.get(
-          `${POST_API_END_POINT}/all-posts${cityQuery}`,
-          { withCredentials: true },
-        );
+        const { data } = await getAllPosts(filters.search);
 
         if (data.success) {
           setPosts(data.posts);

@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
 import { setUser } from "@/redux/authSlice";
-import { AUTH_API_END_POINT } from "@/utils/constant";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Fingerprint, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { loginUser } from "../api/authApi";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -28,9 +27,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post(`${AUTH_API_END_POINT}/login`, formData, {
-        withCredentials: true,
-      });
+      const res = await loginUser(formData);
       toast.success(res.data.message || "Welcome Back! 👋");
       dispatch(setUser(res.data.user));
       localStorage.setItem("user", JSON.stringify(res.data.user));

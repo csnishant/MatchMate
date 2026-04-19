@@ -13,7 +13,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { POST_API_END_POINT } from "@/utils/constant";
+import { createPost, getMyPost, togglePostStatus, updatePost } from "../api/postApi";
 
 // Input component
 function Input({ label, ...props }) {
@@ -52,9 +52,7 @@ export default function MyPostPage() {
   // Fetch post
   const fetchMyPost = async () => {
     try {
-      const res = await axios.get(`${POST_API_END_POINT}/my-post`, {
-        withCredentials: true,
-      });
+      const res = await getMyPost();
       setPost(res.data.posts[0] || null);
     } catch (err) {
       toast.error("Failed to load post");
@@ -71,11 +69,7 @@ export default function MyPostPage() {
   // Toggle visibility
   const handleToggleStatus = async () => {
     try {
-      const res = await axios.put(
-        `${POST_API_END_POINT}/toggle/${post._id}`,
-        {},
-        { withCredentials: true },
-      );
+      const res = await togglePostStatus(post._id);
       setPost({ ...post, isActive: res.data.isActive });
       toast.success("Status Updated");
     } catch (err) {
@@ -107,34 +101,33 @@ export default function MyPostPage() {
   };
 
   // Submit form
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setSubmitting(true);
 
-    const payload = {
-      ...formData,
-      budgetPerPerson: Number(formData.budgetPerPerson),
-      totalRoomRent: formData.hasRoom ? Number(formData.totalRoomRent) : null,
-      lookingForGender: formData.lookingForGender.toLowerCase(), // 🔹 add this
-    };
-
-    const method = post ? "put" : "post";
-    const url = post
-      ? `${POST_API_END_POINT}/update/${post._id}`
-      : `${POST_API_END_POINT}/create`;
-
-    try {
-      await axios[method](url, payload, { withCredentials: true });
-      toast.success("Saved Successfully!");
-      fetchMyPost();
-      setView("list");
-    } catch (err) {
-      console.error(err.response?.data || err);
-      toast.error(err.response?.data?.message || "Submission failed");
-    } finally {
-      setSubmitting(false);
-    }
+  const payload = {
+    ...formData,
+    budgetPerPerson: Number(formData.budgetPerPerson),
+    totalRoomRent: formData.hasRoom ? Number(formData.totalRoomRent) : null,
+    lookingForGender: formData.lookingForGender.toLowerCase(),
   };
+
+  try {
+    if (post) {
+      await updatePost(post._id, payload);
+    } else {
+      await createPost(payload);
+    }
+
+    toast.success("Saved Successfully!");
+    fetchMyPost();
+    setView("list");
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Submission failed");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   if (loading)
     return (
