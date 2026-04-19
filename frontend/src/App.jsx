@@ -2,23 +2,20 @@ import { useEffect } from "react";
 import "./App.css";
 import { Toaster } from "react-hot-toast";
 import { Routes, Route, useLocation } from "react-router-dom";
-
 import Login from "./auth/Login";
 import Signup from "./auth/Signup";
-import Home from "./pages/Home";
 import Navbar from "./components/Navbar";
 import Profile from "./profile/Profile";
 import Notifications from "./pages/Notification";
 import ExplorePage from "./pages/ExplorePage";
 import ViewProfile from "./pages/ViewProfile";
 import MyPostsPage from "./pages/MyPost";
-
-
 import { useDispatch } from "react-redux";
 import { setUser } from "./redux/authSlice";
-
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AuthRoute from "./routes/AuthRoute";
+import Home from "./pages/Home";
+
 
 function App() {
   const dispatch = useDispatch();
@@ -44,7 +41,7 @@ function App() {
       <main className={!hideNavbar ? "pt-16" : ""}>
         <Routes>
           {/* 🌍 Public Route */}
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home/>} />
 
           {/* 🚫 Auth Routes (no navbar + no access after login) */}
           <Route

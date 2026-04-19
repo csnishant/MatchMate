@@ -7,22 +7,20 @@ import {
   MessageCircle,
   ArrowRight,
 } from "lucide-react";
-import Hero from "@/components/Hero";
 
+// Agar @ alias Netlify par error de raha hai, toh ise "../components/Hero" karein
+import Hero from "../components/Hero";
+import SearchBar from "../components/SearchBar";
+import Footer from "../components/Footer";
+import Community from "../components/Community";
 
-
-import SearchBar from "@/components/SearchBar";
-import Footer from "@/components/Footer";
-import Community from "@/components/Community";
-
-
-export default function Home() {
+function Home() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <main className="min-h-screen bg-[#000000] text-black selection:bg-indigo-500/30">
+    <main className="min-h-screen bg-[#000000] text-zinc-100 selection:bg-indigo-500/30">
       {/* 1. iOS BLURRED TOP SEARCH BAR */}
-      <nav className=" top-0 z-50 backdrop-blur-2xl bg-black/60 border-b border-white/5 px-4 py-4">
+      <nav className="sticky top-0 z-50 backdrop-blur-2xl bg-black/60 border-b border-white/5 px-4 py-4">
         <div className="max-w-4xl mx-auto">
           <SearchBar route="all-users" />
         </div>
@@ -40,9 +38,8 @@ export default function Home() {
       </section>
 
       {/* 3. BENTO GRID FEATURES */}
-      <section className="py-24 px-6 bg-[#000000] selection:bg-indigo-500/30">
+      <section className="py-24 px-6 bg-[#000000]">
         <div className="max-w-6xl mx-auto">
-          {/* Header Section */}
           <header className="mb-20 text-center space-y-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -97,25 +94,19 @@ export default function Home() {
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -5 }}
                 className="group relative flex flex-col p-8 rounded-[32px] bg-[#09090b] border border-white/[0.05] hover:border-white/[0.12] transition-all duration-300 overflow-hidden">
-                {/* Subtle Glow Overlay */}
                 <div
                   className={`absolute -right-4 -top-4 w-24 h-24 blur-[60px] opacity-0 transition-opacity duration-500 ${feature.glow}`}
                 />
-
                 <div className="relative z-10 flex flex-col h-full">
                   <div className="mb-6 w-12 h-12 flex items-center justify-center rounded-2xl bg-white/[0.03] border border-white/[0.08] group-hover:scale-110 transition-transform duration-500">
                     {feature.icon}
                   </div>
-
                   <h3 className="text-xl font-bold text-zinc-100 mb-3 tracking-tight">
                     {feature.title}
                   </h3>
-
                   <p className="text-zinc-400 text-sm leading-relaxed mb-8">
                     {feature.desc}
                   </p>
-
-                  {/* Result Tag - The 'Why' */}
                   <div className="mt-auto pt-5 border-t border-white/[0.05] flex items-center justify-between">
                     <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">
                       Impact
@@ -129,7 +120,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Bottom CTA */}
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -145,11 +135,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. COMMUNITY FEED (The Main Content) */}
+      {/* 4. COMMUNITY FEED */}
       <section className="py-10 bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between mb-10">
-            <h2 className="text-2xl md:text-4xl font-bold tracking-tighter italic">
+            <h2 className="text-2xl md:text-4xl font-bold tracking-tighter italic text-zinc-100">
               The Community
             </h2>
             <div className="h-[1px] flex-grow mx-6 bg-white/10 hidden md:block" />
@@ -157,7 +147,6 @@ export default function Home() {
               View All <ArrowRight size={16} />
             </button>
           </div>
-
           <Community />
         </div>
       </section>
@@ -167,15 +156,5 @@ export default function Home() {
   );
 }
 
-// UI Helper: Feature Card (Bento Style)
-function FeatureCard({ icon, title, desc, gradient }) {
-  return (
-    <motion.div
-      whileHover={{ y: -5 }}
-      className={`bg-[#1c1c1e] p-8 rounded-[2.5rem] border border-white/5 transition-all duration-300 ${gradient}`}>
-      <div className="mb-6 bg-white/5 w-fit p-4 rounded-3xl">{icon}</div>
-      <h3 className="text-xl font-bold mb-3 tracking-tight">{title}</h3>
-      <p className="text-gray-400 text-sm leading-relaxed">{desc}</p>
-    </motion.div>
-  );
-}
+// Export default ko hamesha last mein rakhein
+export default Home;
