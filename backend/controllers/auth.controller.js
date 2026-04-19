@@ -1,5 +1,5 @@
 import User from "../models/user.js";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcryptjs"; // Bilkul sahi import
 import jwt from "jsonwebtoken";
 
 /* ===== SIGNUP ===== */
@@ -8,9 +8,9 @@ export const signupUser = async (req, res) => {
     const { name, email, password, contact, gender, age } = req.body;
 
     if (!name || !email || !password || !contact || !gender || !age) {
-      return res.status(400).json({
-        message: "All required fields must be filled",
-      });
+      return res
+        .status(400)
+        .json({ message: "All required fields must be filled" });
     }
 
     const exist = await User.findOne({ email });
@@ -18,6 +18,7 @@ export const signupUser = async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
+    // bcryptjs use ho raha hai
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
@@ -43,6 +44,7 @@ export const loginUser = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid email" });
 
+    // bcryptjs compare ke liye
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid password" });
 
@@ -50,10 +52,12 @@ export const loginUser = async (req, res) => {
       expiresIn: "1h",
     });
 
+    // production settings (Netlify + Render ke liye)
     res.cookie("token", token, {
       httpOnly: true,
-      sameSite: "Lax",
-      secure: false,
+      sameSite: "None", // Zaroori: Cross-site cookie support ke liye
+      secure: true, // Zaroori: Kyunki Render HTTPS use karta hai
+      maxAge: 3600000, // 1 ghanta
     });
 
     res.status(200).json({
@@ -68,6 +72,12 @@ export const loginUser = async (req, res) => {
 
 /* ===== LOGOUT ===== */
 export const logoutUser = (req, res) => {
-  res.clearCookie("token");
+  // Clear cookie with same production settings
+  res.cookie("token", "", {
+    httpOnly: true,
+    sameSite: "None",
+    secure: true,
+    expires: new Date(0),
+  });
   res.status(200).json({ message: "Logout successful" });
 };
