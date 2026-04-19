@@ -6,7 +6,7 @@ import Login from "./auth/Login";
 import Signup from "./auth/Signup";
 import Navbar from "./components/Navbar";
 import Profile from "./profile/Profile";
-import Notifications from "./pages/Notification";
+
 import ExplorePage from "./pages/ExplorePage";
 import ViewProfile from "./pages/ViewProfile";
 import MyPostsPage from "./pages/MyPost";
@@ -15,6 +15,7 @@ import { setUser } from "./redux/authSlice";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AuthRoute from "./routes/AuthRoute";
 import Home from "./pages/Home";
+import Notifications from "./pages/Notifications";
 
 
 function App() {
