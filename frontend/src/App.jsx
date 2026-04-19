@@ -7,7 +7,7 @@ import Signup from "./auth/Signup";
 import Navbar from "./components/Navbar";
 import Profile from "./profile/Profile";
 
-import ExplorePage from "./pages/ExplorePage";
+
 import ViewProfile from "./pages/ViewProfile";
 import MyPostsPage from "./pages/MyPost";
 import { useDispatch } from "react-redux";
@@ -16,6 +16,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import AuthRoute from "./routes/AuthRoute";
 import Home from "./pages/Home";
 import Notifications from "./pages/Notifications";
+import ExplorePage from "./pages/ExplorePage";
 
 
 function App() {
@@ -83,7 +84,7 @@ function App() {
             path="/all-posts"
             element={
               <ProtectedRoute>
-                <ExplorePage />
+                <ExplorePage/>
               </ProtectedRoute>
             }
           />
