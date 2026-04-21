@@ -6,8 +6,7 @@ import { getMatchAggregation } from "../utils/matchPipeline.js";
 
 export const createPost = async (req, res) => {
   try {
-    console.log("Payload:", req.body);
-    console.log("UserId:", req.userId);
+   
 
     const userId = req.userId;
     if (!userId) {
@@ -46,9 +45,8 @@ export const createPost = async (req, res) => {
       isActive: true,
     });
 
-    console.log("Saving new post:", newPost);
     const savedPost = await newPost.save();
-    console.log("Post saved:", savedPost);
+ 
 
     res.status(201).json({ success: true, post: savedPost });
   } catch (err) {
@@ -252,14 +250,14 @@ export const getSinglePost = async (req, res) => {
     const post = await Post.findById(req.params.id);
 
     if (!post) {
-      console.log("Post not found in DB"); // ✅ check if DB returned nothing
+     
       return res.status(404).json({ message: "Post not found" });
     }
 
-    console.log("Post found:", post); // ✅ show the post
+   
     res.status(200).json({ success: true, post });
   } catch (error) {
-    console.error("Error fetching post:", error); // ✅ show any DB errors
+ 
     res.status(500).json({ message: "Failed to fetch post" });
   }
 };

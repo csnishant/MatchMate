@@ -7,9 +7,7 @@ export const sendRequest = async (req, res) => {
     const senderId = req.userId;
     const receiverId = req.params.receiverId;
 
-    console.log("Send Request API called");
-    console.log("Sender ID:", senderId);
-    console.log("Receiver ID:", receiverId);
+  
 
     if (!receiverId) {
       return res.status(400).json({ message: "Receiver ID missing" });

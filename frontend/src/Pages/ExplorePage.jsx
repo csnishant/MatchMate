@@ -51,7 +51,7 @@ export default function ExplorePage() {
         }
       } catch (err) {
         // Pehli baar bina city ke error handle karne ke liye
-        console.log("Waiting for city input...");
+      
       } finally {
         setLoading(false);
       }
