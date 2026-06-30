@@ -24,8 +24,12 @@ jobs:
           npm install
           npm run build
 
-      # 🔹 BACKEND
+      # 🔹 BACKEND 
       - name: Install Backend
         run: |
           cd backend
           npm install
+
+      #"This is a GitHub Actions CI (Continuous Integration) pipeline. It automatically runs whenever code is pushed to the main branch. First, GitHub creates a fresh Ubuntu virtual machine. Then it checks out the project code from the repository and installs Node.js version 18. Next, it goes to the frontend folder, installs all dependencies using npm install, and builds the application with npm run build to make sure there are no build errors. After that, it goes to the backend folder and installs its dependencies. If any step fails, the pipeline stops and reports the error, helping developers catch issues before deployment."
+
+          
