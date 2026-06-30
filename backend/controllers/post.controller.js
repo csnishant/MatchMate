@@ -6,8 +6,6 @@ import { getMatchAggregation } from "../utils/matchPipeline.js";
 
 export const createPost = async (req, res) => {
   try {
-   
-
     const userId = req.userId;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized: userId missing" });
@@ -46,7 +44,6 @@ export const createPost = async (req, res) => {
     });
 
     const savedPost = await newPost.save();
- 
 
     res.status(201).json({ success: true, post: savedPost });
   } catch (err) {
@@ -60,7 +57,10 @@ export const createPost = async (req, res) => {
 export const getAllPosts = async (req, res) => {
   try {
     const userId = req.userId;
-    const { city } = req.query;
+    const { city, page = 1, limit = 4 } = req.query;
+
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
 
     // ❌ Validation
     if (!city) {
@@ -84,45 +84,55 @@ export const getAllPosts = async (req, res) => {
 
     // 🔹 2. Get posts from aggregation (fast filtering)
     const posts = await getMatchAggregation(currentUser, city);
-
+    console.log("Total posts from aggregation:", posts.length);
+    console.log(posts);
     // 🔥 3. FAST SCORING (NO AI = HIGH PERFORMANCE)
- const scoredPosts = posts.map((post) => {
-   if (!post.creatorDetails) {
-     return {
-       ...post,
-       matchScore: 0,
-       matchReason: "Profile incomplete",
-     };
-   }
+    const scoredPosts = posts.map((post) => {
+      if (!post.creatorDetails) {
+        return {
+          ...post,
+          matchScore: 0,
+          matchReason: "Profile incomplete",
+        };
+      }
 
-   const score = calculateScore(currentUser, post.creatorDetails);
+      const score = calculateScore(currentUser, post.creatorDetails);
 
-   return {
-     ...post,
-     user: post.creatorDetails,
-     matchScore: score,
-   };
- });
-
- // AI ONLY FOR TOP RESULTS
- const topPosts = scoredPosts.slice(0, 5);
-
- await Promise.all(
-   topPosts.map(async (post) => {
-     const ai = await generateMatchInsight(currentUser, post.user);
-
-     post.matchReason = ai.reason;
-   }),
- );
+      return {
+        ...post,
+        user: post.creatorDetails,
+        matchScore: score,
+      };
+    });
 
     // 🔹 4. Sort by best match
     scoredPosts.sort((a, b) => b.matchScore - a.matchScore);
 
-    // 🔹 5. Send response
+    // AI ONLY FOR TOP RESULTS
+    const topPosts = scoredPosts.slice(0, 5);
+
+    await Promise.all(
+      topPosts.map(async (post) => {
+        const ai = await generateMatchInsight(currentUser, post.user);
+
+        post.matchReason = ai.reason;
+      }),
+    );
+
+    // 🔹 5. Pagination
+    const startIndex = (pageNumber - 1) * limitNumber;
+    const endIndex = startIndex + limitNumber;
+
+    const paginatedPosts = scoredPosts.slice(startIndex, endIndex);
+
+    // 🔹 6. Send response
     return res.status(200).json({
       success: true,
-      count: scoredPosts.length,
-      posts: scoredPosts,
+      page: pageNumber,
+      limit: limitNumber,
+      totalPosts: scoredPosts.length,
+      hasMore: endIndex < scoredPosts.length,
+      posts: paginatedPosts,
     });
   } catch (error) {
     console.error("Fetch Error:", error);
@@ -133,6 +143,7 @@ export const getAllPosts = async (req, res) => {
     });
   }
 };
+
 export const getMyPosts = async (req, res) => {
   try {
     const userId = req.userId;
@@ -250,14 +261,11 @@ export const getSinglePost = async (req, res) => {
     const post = await Post.findById(req.params.id);
 
     if (!post) {
-     
       return res.status(404).json({ message: "Post not found" });
     }
 
-   
     res.status(200).json({ success: true, post });
   } catch (error) {
- 
     res.status(500).json({ message: "Failed to fetch post" });
   }
 };

@@ -3,10 +3,17 @@
 import axios from "axios";
 import { POST_API_END_POINT } from "../utils/constant";
 
-export const getAllPosts = (city) => {
-  const query = city ? `?city=${city}` : "";
+export const getAllPosts = (city, page = 1, limit = 4) => {
+  const params = new URLSearchParams();
 
-  return axios.get(`${POST_API_END_POINT}/all-posts${query}`, {
+  if (city) {
+    params.append("city", city);
+  }
+
+  params.append("page", page);
+  params.append("limit", limit);
+
+  return axios.get(`${POST_API_END_POINT}/all-posts?${params.toString()}`, {
     withCredentials: true,
   });
 };
