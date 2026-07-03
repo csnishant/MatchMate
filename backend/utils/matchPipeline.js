@@ -6,7 +6,7 @@ import Post from "../models/post.js";
  * @param {Number} limit - Kitne results chahiye (Default 20)
  */
 
-export const getMatchAggregation = async (currentUser, searchCity) => {
+export const getMatchAggregation = async (searchCity) => {
   return await Post.aggregate([
     {
       $match: {

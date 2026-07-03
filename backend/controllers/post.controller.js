@@ -59,8 +59,8 @@ export const getAllPosts = async (req, res) => {
     const userId = req.userId;
     const { city, page = 1, limit = 4 } = req.query;
 
-    const pageNumber = parseInt(page);
-    const limitNumber = parseInt(limit);
+    const pageNumber = Math.max(1, parseInt(page));
+    const limitNumber = Math.max(1, parseInt(limit));
 
     // ❌ Validation
     if (!city) {
@@ -82,12 +82,11 @@ export const getAllPosts = async (req, res) => {
       });
     }
 
-    // 🔹 2. Get posts from aggregation (fast filtering)
-    const posts = await getMatchAggregation(currentUser, city);
-    console.log("Total posts from aggregation:", posts.length);
-    console.log(posts);
-    // 🔥 3. FAST SCORING (NO AI = HIGH PERFORMANCE)
-    const scoredPosts = posts.map((post) => {
+    // 🔹 2. Fetch matched city posts
+    const posts = await getMatchAggregation(city);
+
+    // 🔹 3. Fast In-Memory Scoring
+    let scoredPosts = posts.map((post) => {
       if (!post.creatorDetails) {
         return {
           ...post,
@@ -100,43 +99,51 @@ export const getAllPosts = async (req, res) => {
 
       return {
         ...post,
-        user: post.creatorDetails,
+        user: post.creatorDetails, // Restructure as per your frontend needs
         matchScore: score,
       };
     });
 
-    // 🔹 4. Sort by best match
+    // 🔹 4. Sort by best match score
     scoredPosts.sort((a, b) => b.matchScore - a.matchScore);
 
-    // AI ONLY FOR TOP RESULTS
-    const topPosts = scoredPosts.slice(0, 5);
+    // 🔹 5. Pagination (Safe slicing)
+    const totalPosts = scoredPosts.length;
+    const startIndex = (pageNumber - 1) * limitNumber;
+    const paginatedPosts = scoredPosts.slice(
+      startIndex,
+      startIndex + limitNumber,
+    );
 
+    // 🔥 6. AI INSIGHTS ONLY FOR CURRENT PAGINATED POSTS (Max 5 items for performance)
+    // Isse server resource aur API costs dono bachengi
     await Promise.all(
-      topPosts.map(async (post) => {
-        const ai = await generateMatchInsight(currentUser, post.user);
-
-        post.matchReason = ai.reason;
+      paginatedPosts.map(async (post) => {
+        if (post.matchScore > 0) {
+          // Call AI only if profile is valid
+          
+          try {
+            const ai = await generateMatchInsight(currentUser, post.user);
+            post.matchReason = ai?.reason || "Good Match";
+          } catch (aiErr) {
+            console.error("AI Insight Error for post:", post._id, aiErr);
+            post.matchReason = "Compatible Profile"; // Fallback text
+          }
+        }
       }),
     );
 
-    // 🔹 5. Pagination
-    const startIndex = (pageNumber - 1) * limitNumber;
-    const endIndex = startIndex + limitNumber;
-
-    const paginatedPosts = scoredPosts.slice(startIndex, endIndex);
-
-    // 🔹 6. Send response
+    // 🔹 7. Send final clean response
     return res.status(200).json({
       success: true,
       page: pageNumber,
       limit: limitNumber,
-      totalPosts: scoredPosts.length,
-      hasMore: endIndex < scoredPosts.length,
+      totalPosts,
+      hasMore: startIndex + limitNumber < totalPosts,
       posts: paginatedPosts,
     });
   } catch (error) {
     console.error("Fetch Error:", error);
-
     return res.status(500).json({
       success: false,
       message: "Error fetching matched posts",

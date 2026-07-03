@@ -9,19 +9,19 @@ import userRoute from "./routes/user.route.js";
 import postRoute from "./routes/post.route.js";
 import requestRoute from "./routes/request.route.js";
 import authRoute from "./routes/auth.route.js";
-import aiRoutes from "./routes/ai.routes.js";
+
 
 
 const app = express();
 
-// const corsOptions = {
-//   origin: "http://localhost:5173",
-//   credentials: true,
-// };
 const corsOptions = {
-  origin: "https://match-mate-app.netlify.app", // Aapka Netlify URL
+  origin: "http://localhost:5173",
   credentials: true,
 };
+// const corsOptions = {
+//   origin: "https://match-mate-app.netlify.app", // Aapka Netlify URL
+//   credentials: true,
+// };
 
 
 app.use(cors(corsOptions));
@@ -34,7 +34,6 @@ app.use("/api/user", userRoute);
 app.use("/api/user-post", postRoute);
 app.use("/api/request", requestRoute);
 app.use("/api/auth", authRoute);
-app.use("/api", aiRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
