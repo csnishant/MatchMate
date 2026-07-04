@@ -54,6 +54,7 @@ export const createPost = async (req, res) => {
   }
 };
 
+
 export const getAllPosts = async (req, res) => {
   try {
     const userId = req.userId;
@@ -62,7 +63,6 @@ export const getAllPosts = async (req, res) => {
     const pageNumber = Math.max(1, parseInt(page));
     const limitNumber = Math.max(1, parseInt(limit));
 
-    // ❌ Validation
     if (!city) {
       return res.status(400).json({
         success: false,
@@ -70,7 +70,7 @@ export const getAllPosts = async (req, res) => {
       });
     }
 
-    // 🔹 1. Get current user
+    // 1. Get current user (Optimized projection)
     const currentUser = await User.findById(userId).select(
       "smoking drinking sleepTime wakeTime foodPreference cleanlinessLevel personality",
     );
@@ -82,58 +82,47 @@ export const getAllPosts = async (req, res) => {
       });
     }
 
-    // 🔹 2. Fetch matched city posts
-    const posts = await getMatchAggregation(city);
-
-    // 🔹 3. Fast In-Memory Scoring
-    let scoredPosts = posts.map((post) => {
-      if (!post.creatorDetails) {
-        return {
-          ...post,
-          matchScore: 0,
-          matchReason: "Profile incomplete",
-        };
-      }
-
-      const score = calculateScore(currentUser, post.creatorDetails);
-
-      return {
-        ...post,
-        user: post.creatorDetails, // Restructure as per your frontend needs
-        matchScore: score,
-      };
-    });
-
-    // 🔹 4. Sort by best match score
-    scoredPosts.sort((a, b) => b.matchScore - a.matchScore);
-
-    // 🔹 5. Pagination (Safe slicing)
-    const totalPosts = scoredPosts.length;
+    // 2. Fetch matched city posts using pure DB optimization
     const startIndex = (pageNumber - 1) * limitNumber;
-    const paginatedPosts = scoredPosts.slice(
+    const aggregationResult = await getMatchAggregation(
+      city,
+      currentUser,
       startIndex,
-      startIndex + limitNumber,
+      limitNumber,
     );
 
-    // 🔥 6. AI INSIGHTS ONLY FOR CURRENT PAGINATED POSTS (Max 5 items for performance)
-    // Isse server resource aur API costs dono bachengi
+    // Destructure facet results safely
+    const totalPosts = aggregationResult[0]?.metaData[0]?.total || 0;
+    const paginatedPosts = aggregationResult[0]?.data || [];
+
+    
+
+    // 3. AI Insights only for the limited paginated posts
     await Promise.all(
       paginatedPosts.map(async (post) => {
+        // Map creatorDetails as user if needed by frontend
+        post.user = post.creatorDetails;
+
+        if (!post.creatorDetails) {
+          post.matchReason = "Profile incomplete";
+          return;
+        }
+
         if (post.matchScore > 0) {
-          // Call AI only if profile is valid
-          
           try {
             const ai = await generateMatchInsight(currentUser, post.user);
             post.matchReason = ai?.reason || "Good Match";
           } catch (aiErr) {
             console.error("AI Insight Error for post:", post._id, aiErr);
-            post.matchReason = "Compatible Profile"; // Fallback text
+            post.matchReason = "Compatible Profile";
           }
+        } else {
+          post.matchReason = "Low Compatibility";
         }
       }),
     );
 
-    // 🔹 7. Send final clean response
+    // 4. Final Clean Response
     return res.status(200).json({
       success: true,
       page: pageNumber,
@@ -150,7 +139,6 @@ export const getAllPosts = async (req, res) => {
     });
   }
 };
-
 export const getMyPosts = async (req, res) => {
   try {
     const userId = req.userId;
