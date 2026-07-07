@@ -18,7 +18,7 @@ function Home() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <main className="min-h-screen bg-[#000000] text-zinc-100 selection:bg-indigo-500/30">
+    <main className="min-h-screen  text-zinc-100 selection:bg-indigo-500/30">
       {/* 1. iOS BLURRED TOP SEARCH BAR */}
       <nav className="z-50 backdrop-blur-2xl bg-black/60 border-b border-white/5 px-4 py-4">
         <div className="max-w-4xl mx-auto">
