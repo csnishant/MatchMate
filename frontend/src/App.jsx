@@ -1,37 +1,82 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import { Toaster } from "react-hot-toast";
 import { Routes, Route, useLocation } from "react-router-dom";
-import Login from "./auth/Login";
-import Signup from "./auth/Signup";
-import Navbar from "./components/Navbar";
-import Profile from "./profile/Profile";
-
-import ViewProfile from "./pages/ViewProfile";
-import MyPostsPage from "./pages/MyPost";
+import axios from "axios"; // 👈 Axios import karein
 import { useDispatch } from "react-redux";
 import { setUser } from "./redux/authSlice";
-import ProtectedRoute from "./routes/ProtectedRoute";
-import AuthRoute from "./routes/AuthRoute";
+
+// Components & Pages
+import Navbar from "./components/Navbar";
+import Login from "./auth/Login";
+import Signup from "./auth/Signup";
 import Home from "./pages/Home";
+import Profile from "./profile/Profile";
+import ViewProfile from "./pages/ViewProfile";
+import MyPostsPage from "./pages/MyPost";
 import Notifications from "./pages/Notifications";
 import ExplorePage from "./pages/ExplorePage";
 import MyRequests from "./pages/MyRequests";
 
+// Routes Guards
+import ProtectedRoute from "./routes/ProtectedRoute";
+import AuthRoute from "./routes/AuthRoute";
+
 function App() {
   const dispatch = useDispatch();
   const location = useLocation();
+  const [checkingAuth, setCheckingAuth] = useState(true); // Loader lagane ke liye
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      dispatch(setUser(JSON.parse(storedUser)));
-    }
+    const verifyUserSession = async () => {
+      const storedUser = localStorage.getItem("user");
+      const token = localStorage.getItem("token"); // Agar aap token alag se rakhte hain
+
+      if (!storedUser) {
+        setCheckingAuth(false);
+        return;
+      }
+
+      try {
+        // 🚨 APNA ACTUAL BACKEND URL YAHAN DALEIN
+        // Yeh route backend par token validate karke user ka fresh data dega
+        const response = await axios.get(
+          "https://your-backend-url.com/api/auth/me",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        // Agar backend ne user ko sahi bola, toh dispatch karo
+        dispatch(setUser(response.data.user));
+      } catch (error) {
+        console.error("Session expired or invalid token");
+        // ❌ Agar backend 401 deta hai, toh fake session clear karo
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        dispatch(setUser(null));
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+
+    verifyUserSession();
   }, [dispatch]);
 
-  // 🔥 Navbar hide logic
+  // Navbar hide logic
   const hideNavbar =
     location.pathname === "/login" || location.pathname === "/signup";
+
+  // Jab tak token verify ho raha hai, tab tak blank ya loading spinner dikhayein
+  if (checkingAuth) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <>
@@ -43,7 +88,8 @@ function App() {
         <Routes>
           {/* 🌍 Public Route */}
           <Route path="/" element={<Home />} />
-          {/* 🚫 Auth Routes (no navbar + no access after login) */}
+
+          {/* 🚫 Auth Routes (No access after login) */}
           <Route
             path="/login"
             element={
@@ -60,6 +106,7 @@ function App() {
               </AuthRoute>
             }
           />
+
           {/* 🔐 Protected Routes */}
           <Route
             path="/profile"
@@ -93,7 +140,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          //my request route
           <Route
             path="/my-requests"
             element={
