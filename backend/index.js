@@ -32,7 +32,6 @@ app.use("/api/user-post", postRoute);
 app.use("/api/request", requestRoute);
 app.use("/api/auth", authRoute);
 
-app.use("/api", (await import("./routes/test.js")).default);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

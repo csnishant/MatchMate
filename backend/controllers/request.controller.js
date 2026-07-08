@@ -7,8 +7,6 @@ export const sendRequest = async (req, res) => {
     const senderId = req.userId;
     const receiverId = req.params.receiverId;
 
-  
-
     if (!receiverId) {
       return res.status(400).json({ message: "Receiver ID missing" });
     }
@@ -113,11 +111,11 @@ export const getMyRequests = async (req, res) => {
 
     // Optional: separate sent & received (frontend easy ho jata hai)
     const sentRequests = requests.filter(
-      (r) => r.sender._id.toString() === userId
+      (r) => r.sender._id.toString() === userId,
     );
 
     const receivedRequests = requests.filter(
-      (r) => r.receiver._id.toString() === userId
+      (r) => r.receiver._id.toString() === userId,
     );
 
     res.status(200).json({
@@ -175,19 +173,27 @@ export const deleteRequest = async (req, res) => {
     const request = await Request.findById(requestId);
 
     if (!request) {
-      return res.status(404).json({ message: "Request not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Request not found" });
     }
 
-    // Only receiver can delete
-    if (request.receiver.toString() !== req.userId) {
-      return res.status(403).json({ message: "Unauthorized" });
+    // ✅ FIX: Check karein ki user na toh sender hai AUR na hi receiver hai
+    const isSender = request.sender.toString() === req.userId;
+    const isReceiver = request.receiver.toString() === req.userId;
+
+    if (!isSender && !isReceiver) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
     }
 
     // ❌ Accepted request cannot be deleted
     if (request.status === "accepted") {
       return res
         .status(400)
-        .json({ message: "Accepted request cannot be deleted" });
+        .json({
+          success: false,
+          message: "Accepted request cannot be deleted",
+        });
     }
 
     await request.deleteOne();
@@ -197,6 +203,8 @@ export const deleteRequest = async (req, res) => {
       message: "Request deleted successfully",
     });
   } catch (error) {
-    res.status(500).json({ message: "Failed to delete request" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to delete request" });
   }
 };

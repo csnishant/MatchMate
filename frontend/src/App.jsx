@@ -7,7 +7,6 @@ import Signup from "./auth/Signup";
 import Navbar from "./components/Navbar";
 import Profile from "./profile/Profile";
 
-
 import ViewProfile from "./pages/ViewProfile";
 import MyPostsPage from "./pages/MyPost";
 import { useDispatch } from "react-redux";
@@ -17,7 +16,7 @@ import AuthRoute from "./routes/AuthRoute";
 import Home from "./pages/Home";
 import Notifications from "./pages/Notifications";
 import ExplorePage from "./pages/ExplorePage";
-
+import MyRequests from "./pages/MyRequests";
 
 function App() {
   const dispatch = useDispatch();
@@ -43,8 +42,7 @@ function App() {
       <main className={!hideNavbar ? "pt-16" : ""}>
         <Routes>
           {/* 🌍 Public Route */}
-          <Route path="/" element={<Home/>} />
-
+          <Route path="/" element={<Home />} />
           {/* 🚫 Auth Routes (no navbar + no access after login) */}
           <Route
             path="/login"
@@ -62,7 +60,6 @@ function App() {
               </AuthRoute>
             }
           />
-
           {/* 🔐 Protected Routes */}
           <Route
             path="/profile"
@@ -84,7 +81,7 @@ function App() {
             path="/all-posts"
             element={
               <ProtectedRoute>
-                <ExplorePage/>
+                <ExplorePage />
               </ProtectedRoute>
             }
           />
@@ -96,8 +93,15 @@ function App() {
               </ProtectedRoute>
             }
           />
-       
-      
+          //my request route
+          <Route
+            path="/my-requests"
+            element={
+              <ProtectedRoute>
+                <MyRequests />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/user-profile/:id"
             element={

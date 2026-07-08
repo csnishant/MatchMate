@@ -108,7 +108,7 @@ export default function SearchBar() {
       </div>
 
       {/* Custom CSS for hiding scrollbar */}
-      <style jsx>{`
+      <style jsx="true">{`
         .no-scrollbar::-webkit-scrollbar {
           display: none;
         }

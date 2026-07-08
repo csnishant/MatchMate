@@ -20,6 +20,10 @@ import {
   Menu,
   X,
   LayoutGrid,
+  GitPullRequest,
+  BluetoothConnectedIcon,
+  SendToBack,
+  SendHorizontal,
 } from "lucide-react";
 import { AUTH_API_END_POINT } from "@/utils/constant";
 
@@ -184,6 +188,11 @@ const Navbar = () => {
             <div className="flex flex-col gap-6">
               <MobileLink to="/" label="Home" icon={<Home />} />
 
+              <MobileLink
+                to="/my-requests"
+                label="My Requests"
+                icon={<SendHorizontal/>}
+              />
               <MobileLink
                 to="/all-posts"
                 label="Explore Posts"
