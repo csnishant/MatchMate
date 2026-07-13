@@ -110,7 +110,7 @@ export default function ExplorePage() {
         !filters.gender || post.lookingForGender === filters.gender;
 
       const universityMatch =
-        !filters.university || post.unarmser?.university === filters.university;
+        !filters.university || post.username?.university === filters.university;
 
       const roomMatch =
         !filters.hasRoom ||
