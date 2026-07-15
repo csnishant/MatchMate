@@ -3,11 +3,23 @@
 import axios from "axios";
 import { POST_API_END_POINT } from "../utils/constant";
 
-export const getAllPosts = (city, page = 1, limit = 4) => {
+export const getAllPosts = (filters, page = 1, limit = 4) => {
   const params = new URLSearchParams();
 
-  if (city) {
-    params.append("city", city);
+  if (filters.search) {
+    params.append("city", filters.search);
+  }
+
+  if (filters.gender) {
+    params.append("append", filters.gender);
+  }
+
+  if (filters.university) {
+    params.append("university", filters.university);
+  }
+
+  if (filters.hasRoom) {
+    params.append("hasRoom", filters.hasRoom);
   }
 
   params.append("page", page);

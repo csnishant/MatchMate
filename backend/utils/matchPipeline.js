@@ -5,6 +5,9 @@ export const getMatchAggregation = async (
   currentUser,
   startIndex,
   limitNumber,
+  gender,
+  university,
+  hasRoom,
 ) => {
   // Safe parsing functions for Time string "HH:MM" inside MongoDB
   const getHourExpr = (field) => ({
@@ -44,13 +47,35 @@ export const getMatchAggregation = async (
           ? 3
           : 0;
 
+  // Post collection filters
+  const postMatch = {
+    city: { $regex: new RegExp(`^${searchCity}$`, "i") },
+    isActive: true,
+  };
+
+  if (hasRoom === "yes") {
+    postMatch.hasRoom = true;
+  }
+
+  if (hasRoom === "no") {
+    postMatch.hasRoom = false;
+  }
+
+  // User collection filters
+  const userMatch = {};
+
+  if (gender) {
+    userMatch["creatorDetails.gender"] = gender;
+  }
+
+  if (university) {
+    userMatch["creatorDetails.university"] = university;
+  }
+
   return await Post.aggregate([
     // 1. Filter active posts by city (Using index)
     {
-      $match: {
-        city: { $regex: new RegExp(`^${searchCity}$`, "i") },
-        isActive: true,
-      },
+      $match: postMatch,
     },
     // 2. Lookup user profile details
     {
@@ -67,6 +92,13 @@ export const getMatchAggregation = async (
         preserveNullAndEmptyArrays: true,
       },
     },
+    ...(Object.keys(userMatch).length
+      ? [
+          {
+            $match: userMatch,
+          },
+        ]
+      : []),
     // 3. Dynamic Match Score Calculation
     {
       $addFields: {

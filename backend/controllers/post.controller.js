@@ -54,13 +54,22 @@ export const createPost = async (req, res) => {
   }
 };
 
-
 export const getAllPosts = async (req, res) => {
   try {
     const userId = req.userId;
-    const { city, page = 1, limit = 4 } = req.query;
 
+    const {
+      city,
+      gender,
+      university,
+      hasRoom,
+      page = 1,
+      limit = 4,
+    } = req.query;
+
+    console.log(req.query);
     const pageNumber = Math.max(1, parseInt(page));
+
     const limitNumber = Math.max(1, parseInt(limit));
 
     if (!city) {
@@ -89,13 +98,14 @@ export const getAllPosts = async (req, res) => {
       currentUser,
       startIndex,
       limitNumber,
+      gender,
+      university,
+      hasRoom,
     );
 
     // Destructure facet results safely
     const totalPosts = aggregationResult[0]?.metaData[0]?.total || 0;
     const paginatedPosts = aggregationResult[0]?.data || [];
-
-    
 
     // 3. AI Insights only for the limited paginated posts
     await Promise.all(
