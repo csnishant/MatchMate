@@ -11,7 +11,7 @@ export const getAllPosts = (filters, page = 1, limit = 4) => {
   }
 
   if (filters.gender) {
-    params.append("append", filters.gender);
+    params.append("gender", filters.gender);
   }
 
   if (filters.university) {

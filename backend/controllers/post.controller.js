@@ -68,6 +68,7 @@ export const getAllPosts = async (req, res) => {
     } = req.query;
 
     console.log(req.query);
+    
     const pageNumber = Math.max(1, parseInt(page));
 
     const limitNumber = Math.max(1, parseInt(limit));
@@ -149,6 +150,8 @@ export const getAllPosts = async (req, res) => {
     });
   }
 };
+
+
 export const getMyPosts = async (req, res) => {
   try {
     const userId = req.userId;

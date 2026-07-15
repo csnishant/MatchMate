@@ -45,7 +45,7 @@ export default function ExplorePage() {
   useEffect(() => {
     setPage(1);
     setPosts([]);
-  }, [filters.search]);
+  }, [filters.search, filters.gender, filters.university, filters.hasRoom]);
 
   // Fetch Posts
   useEffect(() => {
@@ -95,32 +95,7 @@ export default function ExplorePage() {
     );
   }, [filters.search, navigate]);
 
-  // Text Filter
-  const textFilteredPosts = useSearchFilter(posts, filters.search, [
-    "city",
-    "area",
-    "user.name",
-  ]);
-
-  const finalFilteredPosts = textFilteredPosts
-    .filter((post) => {
-      if (!post.user) return false;
-
-      const genderMatch =
-        !filters.gender || post.user?.gender === filters.gender;
-
-      const universityMatch =
-        !filters.university || post.user?.university === filters.university;
-
-      const roomMatch =
-        !filters.hasRoom ||
-        (filters.hasRoom === "yes" ? post.hasRoom : !post.hasRoom);
-
-      return genderMatch && universityMatch && roomMatch;
-    })
-    .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
-
-  if (!user) return null;
+  const finalFilteredPosts = posts;
 
   return (
     <div className="bg-black min-h-screen text-white pb-32">
@@ -169,11 +144,11 @@ export default function ExplorePage() {
           <LayoutGrid size={16} />
 
           <span className="text-xs font-bold uppercase tracking-widest">
-            {finalFilteredPosts.length} matches found
+            {posts.length} matches found
           </span>
         </div>
 
-        {loading ? (
+        {loading && page === 1 ? (
           <div className="flex flex-col items-center justify-center py-40 gap-4">
             <Loader2 className="animate-spin text-indigo-500" size={40} />
 
@@ -185,7 +160,7 @@ export default function ExplorePage() {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               <AnimatePresence mode="popLayout">
-                {finalFilteredPosts.map((post, idx) => (
+                {posts.map((post, idx) => (
                   <motion.div
                     key={post._id}
                     initial={{ opacity: 0, y: 20 }}
@@ -197,7 +172,7 @@ export default function ExplorePage() {
               </AnimatePresence>
             </div>
 
-            {!finalFilteredPosts.length && (
+            {!posts.length && (
               <div className="text-center py-40 text-gray-500 italic">
                 No one matches your vibe yet.
               </div>
