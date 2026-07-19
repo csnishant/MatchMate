@@ -18,13 +18,27 @@ export default function MyRequests() {
   const [sentRequests, setSentRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  
+
   useEffect(() => {
+    let isMounted = true; //create a switch to check if this page is still open
+
     const getRequests = async () => {
-      const data = await fetchMyRequestsData();
-      setSentRequests(data);
-      setLoading(false);
+      try {
+        const data = await fetchMyRequestsData(); //try to fetch the data from the server
+        if (isMounted) setSentRequests(data || []);
+      } catch (error) {
+        console.error("Failed to fetch requests:", error);
+        toast.error("Could not load your requests.");
+      } finally {
+        if (isMounted) setLoading(false); //this code always runs to turn off the loading animation safely
+      }
     };
+
     getRequests();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // 🔥 DELETE HANDLER: Request ko delete karne aur UI update karne ke liye
@@ -75,6 +89,19 @@ export default function MyRequests() {
           text: "Pending",
         };
     }
+  };
+
+  // This is a simple helper function to make dates look pretty (e.g., "Jul 19")
+  // We keep it out of the main HTML layout loop to make the code faster
+  const formDate = (dateString) => {
+    // If there is no date, return nothing to prevent errors
+    if (!dateString) return "";
+
+    // Convert the text into a clean readable date format
+    return new Date(dateString).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
   };
 
   if (loading) {
@@ -137,17 +164,10 @@ export default function MyRequests() {
 
                       <div className="min-w-0">
                         <h4 className="text-sm font-bold text-white truncate group-hover:text-indigo-300 transition-colors">
-                          {receiver?.name || "RoomCraft User"}
+                          {receiver?.name || "MatchMate User"}
                         </h4>
                         <span className="flex items-center gap-1 text-[11px] font-mono text-stone-500 mt-0.5">
-                          Sent on:{" "}
-                          {new Date(req.createdAt).toLocaleDateString(
-                            undefined,
-                            {
-                              month: "short",
-                              day: "numeric",
-                            },
-                          )}
+                          Sent on:{formDate(req.createdAt)}
                         </span>
                       </div>
                     </Link>

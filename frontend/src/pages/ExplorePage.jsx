@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react"; // ⚡ FIX 1: Added useMemo import
+import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import SearchFilter from "@/components/SearchFilter";
@@ -13,12 +13,11 @@ export default function ExplorePage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Cache the URLSearchParams to avoid layout thrashing on fast typing
+  // Cache URLSearchParams to prevent layout thrashing
   const searchParams = useMemo(
     () => new URLSearchParams(location.search),
     [location.search],
   );
-
   const initialSearch = searchParams.get("search") || user?.city || "";
 
   const [posts, setPosts] = useState([]);
@@ -45,17 +44,15 @@ export default function ExplorePage() {
     }
   }, [user, navigate]);
 
-  // EFFECT 2: Sync URL and Reset Pagination Page when any filter input changes
-  // Why: Pinned ONLY to filters object so it doesn't conflict with the async data fetcher
+  // EFFECT 2: Sync URL and Reset Page strictly when filter inputs change
   useEffect(() => {
     if (!user) return;
 
-    // Update browser URL query params dynamically
     const query = new URLSearchParams();
     if (filters.search) query.set("search", filters.search);
     navigate({ search: query.toString() }, { replace: true });
 
-    // ⚡ FIX 2: Reset pagination strictly when filters change, before making the API call
+    // Reset pagination to page 1 because the search criteria changed
     setPage(1);
   }, [
     filters.search,
@@ -67,9 +64,9 @@ export default function ExplorePage() {
   ]);
 
   // EFFECT 3: Clean Debounced Data Fetcher
-  // Why: Separating this from URL Sync prevents duplicate network triggers and infinite loops
   useEffect(() => {
-    if (!user || !filters.search) return;
+    // ⚡ FIX A: Allow search to be empty so users can clear their search bar!
+    if (!user) return;
 
     const fetchPosts = async () => {
       setLoading(true);
@@ -77,7 +74,6 @@ export default function ExplorePage() {
         const { data } = await getAllPosts(filters, page, 4);
 
         if (data.success) {
-          // ⚡ FIX 3: If it's a fresh search/reset (page 1), replace old array. If page > 1, append for pagination.
           if (page === 1) {
             setPosts(data.posts);
           } else {
@@ -87,19 +83,28 @@ export default function ExplorePage() {
         }
       } catch (err) {
         console.error("API Fetch Error:", err);
+        toast.error("Failed to load posts"); // ⚡ FIX B: Always show a message to user on error
       } finally {
+        // ⚡ FIX C: Set loading to false only if page is 1, or handle load-more loading separately
         setLoading(false);
       }
     };
 
-    // Wait 500ms to ensure the user finished typing before wasting backend bandwidth
     const timer = setTimeout(fetchPosts, 500);
-
-    // Cleanup: Destroys pending timeout if another keystroke happens before 500ms
     return () => clearTimeout(timer);
-  }, [user, filters, page]); // Only depends on structural data states
 
-  // Cache unique list of universities from current posts to prevent redundant child renders
+    // ⚡ FIX D: We break down the 'filters' object into specific strings.
+    // This stops the infinite loop bug!
+  }, [
+    user,
+    page,
+    filters.search,
+    filters.gender,
+    filters.university,
+    filters.hasRoom,
+  ]);
+
+  // Cache unique list of universities
   const memoizedUniversities = useMemo(() => {
     return Array.from(new Set(posts.map((p) => p.user?.university))).filter(
       Boolean,
@@ -168,6 +173,7 @@ export default function ExplorePage() {
                     key={post._id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9 }} // ⚡ FIX E: Added exit animation for smooth removal
                     transition={{ delay: idx * 0.05 }}>
                     <PostCard post={post} />
                   </motion.div>
@@ -185,7 +191,9 @@ export default function ExplorePage() {
               <div className="flex justify-center mt-20">
                 <button
                   onClick={() => setPage((prev) => prev + 1)}
-                  className="bg-[#1c1c1e] text-white px-10 py-4 rounded-2xl font-bold border border-white/5 hover:bg-white/10 transition-all">
+                  className="bg-[#1c1c1e] text-white px-10 py-4 rounded-2xl font-bold border border-white/5 hover:bg-white/10 transition-all flex items-center gap-2">
+                  {/* ⚡ FIX F: Show inline loader inside button when fetching page 2+ */}
+                  {loading && <Loader2 className="animate-spin" size={16} />}
                   Load More Posts
                 </button>
               </div>
