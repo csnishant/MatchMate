@@ -12,14 +12,14 @@ import authRoute from "./routes/auth.route.js";
 
 const app = express();
 
-const corsOptions = {
-  origin: "http://localhost:5173",
-  credentials: true,
-};
 // const corsOptions = {
-//   origin: "https://match-mate-app.netlify.app", // Aapka Netlify URL
+//   origin: "http://localhost:5173",
 //   credentials: true,
 // };
+const corsOptions = {
+  origin: "https://match-mate-app.netlify.app", // Aapka Netlify URL
+  credentials: true,
+};
 
 app.use(cors(corsOptions));
 app.use(express.json());
